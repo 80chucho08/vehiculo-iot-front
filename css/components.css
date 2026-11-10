@@ -1,0 +1,23 @@
+.status-card { height: 100%; padding: var(--space-3); border: 1px solid var(--color-border); border-radius: var(--radius-card); }
+.status-card p { margin-bottom: 0; font-weight: 600; }
+[data-estado="ok"] { border-inline-start: var(--size-joystick-knob-line) solid var(--color-ok); }
+[data-estado="error"] { border-inline-start: var(--size-joystick-knob-line) solid var(--color-error); }
+[data-estado="cargando"] { border-inline-start: var(--size-joystick-knob-line) solid var(--color-loading); }
+.joystick { position: relative; width: var(--joystick-size); height: var(--joystick-size); margin: auto; border: var(--border-width-strong) solid var(--color-border); border-radius: var(--radius-round); background: var(--color-page); touch-action: none; user-select: none; }
+.joystick-direction { position: absolute; font-size: var(--font-size-event); }
+.direction-up { top: var(--size-joystick-pointer); left: 48%; } .direction-right { right: var(--size-joystick-pointer-right); top: var(--size-joystick-pointer-top); } .direction-down { bottom: var(--size-joystick-pointer); left: 48%; } .direction-left { left: var(--size-joystick-pointer-right); top: var(--size-joystick-pointer-top); }
+.joystick-knob { position: absolute; width: var(--joystick-knob-size); height: var(--joystick-knob-size); top: 50%; left: 50%; transform: translate(-50%, -50%); border: var(--border-width-strong) solid var(--color-border); border-radius: var(--radius-round); background: var(--color-surface); pointer-events: none; }
+.joystick-knob[data-direction="arriba"] { top: var(--size-joystick-knob-x); }
+.joystick-knob[data-direction="abajo"] { top: var(--size-joystick-knob-right); }
+.joystick-knob[data-direction="izquierda"] { left: var(--size-joystick-knob-x); }
+.joystick-knob[data-direction="derecha"] { left: var(--size-joystick-knob-right); }
+.command-group { margin-block: var(--space-3); }
+.command-group h3 { margin-bottom: var(--space-2); }
+.command-buttons { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.command-button { min-width: var(--touch-size); }
+.stop-button { width: 100%; min-height: 4rem; font-size: 1.35rem; font-weight: 700; }
+.demo-controls { display: flex; flex-direction: column; gap: var(--space-2); }
+.action-messages, .event-log { max-height: 16rem; overflow-y: auto; overflow-wrap: anywhere; }
+.event-item { padding: var(--space-2); border-bottom: var(--border-width) solid var(--color-border); }
+.event-item pre { white-space: pre-wrap; margin: var(--space-1) 0 0; font-size: var(--font-size-compact); }
+@media (min-width: 40rem) { .demo-controls { flex-direction: row; align-items: center; } .demo-controls .form-select { flex: 1; } }

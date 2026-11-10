@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Panel de control web para vehículo IoT">
+  <title>Control · Vehículo IoT</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/tokens.css" rel="stylesheet">
+  <link href="css/base.css" rel="stylesheet">
+  <link href="css/components.css" rel="stylesheet">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <main class="container control-app">
+    <header class="app-header">
+      <h1 id="vehicle-name">Excavadora IoT</h1>
+      <p>Panel de control del vehículo <span id="vehicle-id">ID 1</span></p>
+      <p id="backend-connectivity" data-estado="cargando">Conexión del vehículo (dato reportado por el backend): Sin verificar</p>
+    </header>
+
+    <section aria-labelledby="health-heading">
+      <h2 id="health-heading">Estado de servicios</h2>
+      <div class="row g-3">
+        <div class="col-12 col-md-4"><article class="status-card" data-estado="cargando" id="ws-status"><h3>◉ WebSocket WSS</h3><p>Conectando</p><small>En línea no confirma que el vehículo/ESP esté conectado.</small></article></div>
+        <div class="col-12 col-md-4"><article class="status-card" data-estado="cargando" id="api-status"><h3>▣ Servidor AWS · API de 21 servicios</h3><p>Comprobando</p></article></div>
+        <div class="col-12 col-md-4"><article class="status-card" data-estado="cargando" id="db-status"><h3>▤ Amazon RDS</h3><p>Sin verificar</p></article></div>
+      </div>
+    </section>
+
+    <section aria-labelledby="joystick-heading">
+      <h2 id="joystick-heading">Joystick</h2>
+      <p id="joystick-notice" role="status"></p>
+      <div class="joystick" id="joystick" role="application" tabindex="0" aria-label="Joystick de control. Use flechas del teclado o arrastre dentro del área" data-estado="ok">
+        <span class="joystick-direction direction-up">↑</span><span class="joystick-direction direction-right">→</span><span class="joystick-direction direction-down">↓</span><span class="joystick-direction direction-left">←</span><span class="joystick-knob" id="joystick-knob" aria-hidden="true"></span>
+      </div>
+    </section>
+
+    <section aria-labelledby="commands-heading"><h2 id="commands-heading">Comandos</h2><div id="command-groups"></div></section>
+
+    <section class="priority-section" aria-label="Detención prioritaria">
+      <button class="btn btn-danger stop-button" id="stop-button" type="button">DETENER</button>
+    </section>
+
+    <section aria-labelledby="demo-heading">
+      <h2 id="demo-heading">Demostración</h2>
+      <label for="demo-select" class="form-label">Selecciona una demo</label>
+      <div class="demo-controls"><select class="form-select" id="demo-select"><option value="">Cargando demos…</option></select><button class="btn btn-primary" id="demo-start" type="button">Ejecutar demo</button><button class="btn btn-secondary" id="demo-cancel" type="button">Cancelar demo</button></div>
+    </section>
+
+    <section aria-labelledby="actions-heading"><h2 id="actions-heading">Mensajes de acción</h2><div id="action-messages" class="action-messages" aria-live="polite" aria-atomic="false"></div></section>
+    <section aria-labelledby="events-heading"><h2 id="events-heading">Últimos eventos WebSocket</h2><ol id="event-log" class="event-log" aria-live="polite"></ol></section>
+    <footer><p>Desarrollado por <span id="author-name">[nombre completo]</span> · <span id="current-year"></span></p></footer>
+  </main>
+</body>
+</html>
