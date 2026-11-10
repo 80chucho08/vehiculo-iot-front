@@ -3,7 +3,10 @@
 [data-estado="ok"] { border-inline-start: var(--size-joystick-knob-line) solid var(--color-ok); }
 [data-estado="error"] { border-inline-start: var(--size-joystick-knob-line) solid var(--color-error); }
 [data-estado="cargando"] { border-inline-start: var(--size-joystick-knob-line) solid var(--color-loading); }
-.joystick { position: relative; width: var(--joystick-size); height: var(--joystick-size); margin: auto; border: var(--border-width-strong) solid var(--color-border); border-radius: var(--radius-round); background: var(--color-page); touch-action: none; user-select: none; }
+.joystick-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+.joystick-panel { min-width: 0; }
+.joystick-control { position: relative; width: min(100%, var(--joystick-size)); aspect-ratio: 1; margin: auto; border: var(--border-width-strong) solid var(--color-border); border-radius: var(--radius-round); background: var(--color-page); touch-action: none; user-select: none; }
+.joystick-control[data-estado="bloqueado"] { opacity: var(--opacity-joystick-blocked); }
 .joystick-direction { position: absolute; font-size: var(--font-size-event); }
 .direction-up { top: var(--size-joystick-pointer); left: 48%; } .direction-right { right: var(--size-joystick-pointer-right); top: var(--size-joystick-pointer-top); } .direction-down { bottom: var(--size-joystick-pointer); left: 48%; } .direction-left { left: var(--size-joystick-pointer-right); top: var(--size-joystick-pointer-top); }
 .joystick-knob { position: absolute; width: var(--joystick-knob-size); height: var(--joystick-knob-size); top: 50%; left: 50%; transform: translate(-50%, -50%); border: var(--border-width-strong) solid var(--color-border); border-radius: var(--radius-round); background: var(--color-surface); pointer-events: none; }
@@ -21,3 +24,4 @@
 .event-item { padding: var(--space-2); border-bottom: var(--border-width) solid var(--color-border); }
 .event-item pre { white-space: pre-wrap; margin: var(--space-1) 0 0; font-size: var(--font-size-compact); }
 @media (min-width: 40rem) { .demo-controls { flex-direction: row; align-items: center; } .demo-controls .form-select { flex: 1; } }
+@media (max-width: 32rem) { .joystick-grid { grid-template-columns: 1fr; } }

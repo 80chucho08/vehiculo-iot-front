@@ -7,6 +7,7 @@ import { configureCommands, enviarComando, detener, isMovementInFlight, isSustai
 import { configureDemos, loadDemos, iniciarDemo, cancelarDemo, completarDemo, avisarDemoEstadoDesconocido } from './demo.js';
 import { getState, updateState, subscribe } from './state.js';
 import { setupJoystick } from './joystick.js';
+import { JOYSTICK_GRUA, JOYSTICK_GARRA } from '../data/joystick-map.js';
 
 if (['localhost', '127.0.0.1', '::1'].includes(location.hostname)) {
   window.addEventListener('unhandledrejection', (event) => {
@@ -47,7 +48,7 @@ async function loadCatalogs() {
   try {
     const result = await request(ROUTES.commands);
     updateState({ commands: Array.isArray(result.comandos) ? result.comandos : [] });
-    renderCommands((code) => enviarComando(code, 'boton'), (origin) => detener(origin));
+    renderCommands((code) => enviarComando(code, 'boton'));
   } catch (error) { logAction(`No se pudo cargar el catálogo de comandos: ${error.message}`, 'error'); }
   try {
     renderDemos(await loadDemos());
@@ -56,7 +57,10 @@ async function loadCatalogs() {
   catch (error) { renderDemos([]); logAction(`No se pudieron cargar las demos: ${error.message}`, 'error'); }
 }
 await loadCatalogs();
-setupJoystick(byId('joystick'), byId('joystick-knob'), { enviarComando, detener, isMovementInFlight, isSustainedMovementActive, getActiveCommand }, () => getState().commands);
+const joystickCommands = { enviarComando, detener, isMovementInFlight, isSustainedMovementActive, getActiveCommand };
+const getCommandCatalog = () => getState().commands;
+setupJoystick(byId('joystick-grua'), byId('joystick-grua-knob'), joystickCommands, getCommandCatalog, JOYSTICK_GRUA);
+setupJoystick(byId('joystick-garra'), byId('joystick-garra-knob'), joystickCommands, getCommandCatalog, JOYSTICK_GARRA);
 
 byId('stop-button').addEventListener('click', () => detener('botón DETENER'));
 byId('demo-start').addEventListener('click', async () => {

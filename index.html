@@ -30,10 +30,22 @@
     </section>
 
     <section aria-labelledby="joystick-heading">
-      <h2 id="joystick-heading">Joystick</h2>
-      <p id="joystick-notice" role="status"></p>
-      <div class="joystick" id="joystick" role="application" tabindex="0" aria-label="Joystick de control. Use flechas del teclado o arrastre dentro del área" data-estado="ok">
-        <span class="joystick-direction direction-up">↑</span><span class="joystick-direction direction-right">→</span><span class="joystick-direction direction-down">↓</span><span class="joystick-direction direction-left">←</span><span class="joystick-knob" id="joystick-knob" aria-hidden="true"></span>
+      <h2 id="joystick-heading">Joysticks</h2>
+      <div class="joystick-grid">
+        <article class="joystick-panel" aria-labelledby="joystick-grua-heading">
+          <h3 id="joystick-grua-heading">Grúa</h3>
+          <p id="joystick-grua-notice" role="status"></p>
+          <div class="joystick-control joystick-grua" id="joystick-grua" role="application" tabindex="0" aria-label="Joystick de grúa. Use flechas del teclado o arrastre dentro del área" data-estado="ok">
+            <span class="joystick-direction direction-up">↑</span><span class="joystick-direction direction-right">→</span><span class="joystick-direction direction-down">↓</span><span class="joystick-direction direction-left">←</span><span class="joystick-knob joystick-grua-knob" id="joystick-grua-knob" data-direction="centro" aria-hidden="true"></span>
+          </div>
+        </article>
+        <article class="joystick-panel" aria-labelledby="joystick-garra-heading">
+          <h3 id="joystick-garra-heading">Garra</h3>
+          <p id="joystick-garra-notice" role="status"></p>
+          <div class="joystick-control joystick-garra" id="joystick-garra" role="application" tabindex="0" aria-label="Joystick de garra. Use flechas del teclado o arrastre dentro del área" data-estado="ok">
+            <span class="joystick-direction direction-up">↑</span><span class="joystick-direction direction-right">→</span><span class="joystick-direction direction-down">↓</span><span class="joystick-direction direction-left">←</span><span class="joystick-knob joystick-garra-knob" id="joystick-garra-knob" data-direction="centro" aria-hidden="true"></span>
+          </div>
+        </article>
       </div>
     </section>
 

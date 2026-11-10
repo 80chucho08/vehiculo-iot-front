@@ -37,4 +37,5 @@
   --size-joystick-pointer-right: 4%;
   --size-joystick-pointer-top: 46%;
   --size-joystick-knob-line: .35rem;
+  --opacity-joystick-blocked: .42;
 }
