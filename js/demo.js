@@ -32,9 +32,7 @@ export function completarDemo(message) {
   onAction(`Evento recibido: demo ${message.id_demo} completada (${message.total_movimientos} movimientos).`, 'ok');
 }
 
-export function recuperarDemoSinConfirmacion() {
+export function avisarDemoEstadoDesconocido() {
   if (!getState().demoRunning) return;
-  clearTimeout(getState().demoTimer);
-  updateState({ demoRunning: false, demoTimer: null });
-  onAction('Tras reconectar, el estado inicial no confirma una demo activa; se libero el bloqueo local.', 'error');
+  onAction('Conexi\u00f3n perdida durante la demo, estado desconocido. Se mantiene el bloqueo hasta recibir demo_completada, confirmar la cancelacion o alcanzar el timeout de seguridad.', 'error');
 }

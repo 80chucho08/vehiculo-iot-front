@@ -4,7 +4,7 @@ import { startHealthChecks } from './health.js';
 import { createWebSocket } from './ws.js';
 import { byId, setStatusCard, createActionLogger, logEvent, setVehicleName, setBackendConnectivity, renderCommands, renderDemos, setCommandButtonsState } from './ui.js';
 import { configureCommands, enviarComando, detener, isMovementInFlight, isSustainedMovementActive, getActiveCommand } from './commands.js';
-import { configureDemos, loadDemos, iniciarDemo, cancelarDemo, completarDemo, recuperarDemoSinConfirmacion } from './demo.js';
+import { configureDemos, loadDemos, iniciarDemo, cancelarDemo, completarDemo, avisarDemoEstadoDesconocido } from './demo.js';
 import { getState, updateState, subscribe } from './state.js';
 import { setupJoystick } from './joystick.js';
 
@@ -20,7 +20,7 @@ configureCommands(
 const context = {
   setStatus: (status, state) => setStatusCard('ws-status', null, status, state),
   setVehicleName, setBackendConnectivity, logAction, logEvent, logUnknownEvent: logEvent,
-  recoverUnconfirmedDemo: recuperarDemoSinConfirmacion,
+  notifyDemoStateUnknown: avisarDemoEstadoDesconocido,
   demoCompleted: completarDemo
 };
 const ws = createWebSocket(context);

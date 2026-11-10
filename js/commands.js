@@ -11,6 +11,8 @@ let activeCode = null;
 let generation = 0;
 let movementInFlight = false;
 let desiredCommand = null;
+const toggleQueue = [];
+const MAX_TOGGLE_QUEUE = 2;
 let stopping = false;
 let stopPromise = null;
 let onAction = () => {};
@@ -46,10 +48,14 @@ export function consumirSolicitud(id, event = null) {
 }
 
 function commandInfo(codigo) {
+  const group = GRUPOS.find((item) => item.codigos.includes(Number(codigo)));
+  if (!group || !['sostenido', 'toggle'].includes(group.tipo)) {
+    console.error(`El codigo de comando ${codigo} no tiene un tipo valido en data/grupos.js.`);
+    return null;
+  }
   const command = getState().commands.find((item) => Number(item.codigo) === Number(codigo) && item.activo);
   if (!command) return null;
-  const group = GRUPOS.find((item) => item.codigos.includes(Number(codigo)));
-  return { command, type: group?.tipo || 'toggle' };
+  return { command, type: group.tipo };
 }
 
 export async function enviarComando(codigo, origen = 'joystick') {
@@ -57,14 +63,30 @@ export async function enviarComando(codigo, origen = 'joystick') {
   const info = commandInfo(codigo);
   if (!info) { onAction(`El comando ${codigo} no esta disponible en el catalogo activo.`, 'error'); return false; }
   const item = { codigo: Number(codigo), origen, ...info };
-  if (movementInFlight) {
+  if (item.type === 'toggle' && (movementInFlight || stopping)) {
+    if (toggleQueue.length >= MAX_TOGGLE_QUEUE) {
+      onAction('La cola de toggles esta llena (maximo 2); espera a que termine el comando pendiente.', 'error');
+      return false;
+    }
+    toggleQueue.push(item);
+    return true;
+  }
+  if (movementInFlight || stopping) {
     // Conserva un solo comando deseado; cada entrada reemplaza a la anterior.
     desiredCommand = item;
     return true;
   }
-  if (stopping) { desiredCommand = item; return true; }
   if (item.type === 'sostenido' && activeCode === item.codigo) return false;
   return send(item);
+}
+
+function sendNextQueued() {
+  if (movementInFlight || stopping) return;
+  const next = toggleQueue.shift() || desiredCommand;
+  if (!next) return;
+  if (next === desiredCommand) desiredCommand = null;
+  if (next.type === 'sostenido' && next.codigo === activeCode) { sendNextQueued(); return; }
+  send(next);
 }
 
 function send(item) {
@@ -95,8 +117,7 @@ function send(item) {
       if (requestGeneration === generation) {
         movementInFlight = false;
         onChange();
-        const next = desiredCommand; desiredCommand = null;
-        if (!stopping && next && !(next.type === 'sostenido' && next.codigo === activeCode)) send(next);
+        sendNextQueued();
       }
     }
   })();
@@ -107,7 +128,7 @@ function send(item) {
 async function sendStopOnce() {
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), STOP_REQUEST_TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(new DOMException('Tiempo agotado', 'TimeoutError')), STOP_REQUEST_TIMEOUT_MS);
     try {
       const response = await request(ROUTES.stop, { method: HTTP_METHODS.stop, signal: controller.signal });
       onAction(`DETENER aceptado por API: ${response.estado || 'respuesta recibida'}.`, 'ok'); return true;
@@ -120,6 +141,8 @@ async function sendStopOnce() {
 }
 
 export function detener(origen = 'user') {
+  desiredCommand = null;
+  toggleQueue.length = 0;
   if (stopPromise) return stopPromise;
   const inFlight = [...pending.values()].map((entry) => entry.done);
   const hadPending = inFlight.length > 0;
@@ -129,15 +152,15 @@ export function detener(origen = 'user') {
   stopPromise = (async () => {
     try {
       const first = await sendStopOnce();
+      let second = false;
       if (hadPending) {
         await Promise.allSettled(inFlight);
-        await sendStopOnce();
+        second = await sendStopOnce();
       }
-      return first;
+      return first || second;
     } finally {
       stopping = false; stopPromise = null; onChange();
-      const next = desiredCommand; desiredCommand = null;
-      if (next && !getState().demoRunning && !(next.type === 'sostenido' && next.codigo === activeCode)) send(next);
+      if (!getState().demoRunning) sendNextQueued();
     }
   })();
   return stopPromise;

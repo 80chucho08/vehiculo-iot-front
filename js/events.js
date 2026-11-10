@@ -9,7 +9,7 @@ handlers.estado_inicial = (message, context) => {
   if (vehicle?.vehiculo) context.setVehicleName(vehicle.vehiculo);
   if (vehicle && Object.hasOwn(vehicle, 'conectado')) context.setBackendConnectivity(vehicle.conectado);
   updateState({ initialStatus: vehicle, initialDemos: message.demos || [] });
-  if (context.consumeReconnection?.()) context.recoverUnconfirmedDemo?.();
+  if (context.consumeReconnection?.()) context.notifyDemoStateUnknown?.();
   context.logAction('Estado inicial recibido del backend.', 'ok');
 };
 
