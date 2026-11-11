@@ -1,0 +1,34 @@
+const root = document.documentElement;
+const byId = (id) => document.getElementById(id);
+const get = (key, fallback) => { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } };
+const put = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
+const theme = byId('theme-select');
+const savedTheme = get('cabina-tema', 'ambar');
+root.dataset.tema = ['ambar', 'cian', 'neon'].includes(savedTheme) ? savedTheme : 'ambar';
+theme.value = root.dataset.tema;
+theme.addEventListener('change', () => { root.dataset.tema = theme.value; put('cabina-tema', theme.value); });
+const effects = byId('effects-toggle');
+let reduced = get('cabina-efectos-reducidos', 'false') === 'true';
+const applyEffects = () => { root.dataset.efectos = reduced ? 'reducidos' : 'normales'; effects.textContent = reduced ? 'Efectos reducidos' : 'Efectos normales'; effects.setAttribute('aria-pressed', String(reduced)); };
+applyEffects();
+effects.addEventListener('click', () => { reduced = !reduced; put('cabina-efectos-reducidos', String(reduced)); applyEffects(); });
+byId('fullscreen-toggle').addEventListener('click', async () => {
+  try { if (!document.fullscreenElement) { await document.documentElement.requestFullscreen(); try { await screen.orientation.lock('landscape'); } catch {} } else await document.exitFullscreen(); } catch {}
+});
+const hint = byId('rotate-hint');
+byId('rotate-hint').querySelector('button').addEventListener('click', () => { hint.hidden = true; put('cabina-rotate-hint', 'oculto'); });
+if (get('cabina-rotate-hint', '') === 'oculto') hint.hidden = true;
+const eventsPanel = document.querySelector('.events-panel');
+byId('events-toggle').addEventListener('click', (event) => { const opened = eventsPanel.dataset.open !== 'true'; eventsPanel.dataset.open = String(opened); event.currentTarget.setAttribute('aria-expanded', String(opened)); });
+const sheet = byId('demo-sheet');
+const primarySelect = byId('demo-select');
+const secondarySelect = byId('demo-select-sheet');
+const copyOptions = (from, to) => { const selected = from.value; to.replaceChildren(...[...from.options].map((option) => { const clone = document.createElement('option'); clone.value = option.value; clone.textContent = option.textContent; clone.disabled = option.disabled; return clone; })); to.value = selected; };
+const openSheet = () => { copyOptions(primarySelect, secondarySelect); if (typeof sheet.showModal === 'function') sheet.showModal(); else sheet.setAttribute('open', ''); };
+byId('demo-open').addEventListener('click', openSheet);
+byId('demo-close').addEventListener('click', () => sheet.close());
+secondarySelect.addEventListener('change', () => { primarySelect.value = secondarySelect.value; primarySelect.dispatchEvent(new Event('change', { bubbles: true })); });
+byId('demo-sheet-start').addEventListener('click', () => { primarySelect.value = secondarySelect.value; primarySelect.dispatchEvent(new Event('change', { bubbles: true })); byId('demo-start').click(); sheet.close(); });
+byId('demo-sheet-cancel').addEventListener('click', () => { byId('demo-cancel').click(); sheet.close(); });
+const sync = new MutationObserver(() => { if (secondarySelect.options.length !== primarySelect.options.length) copyOptions(primarySelect, secondarySelect); });
+sync.observe(primarySelect, { childList: true });

@@ -41,12 +41,13 @@ export function renderCommands(onClick, stopCommand = () => {}) {
     const buttons = document.createElement('div'); buttons.className = 'command-buttons';
     for (const command of commands.filter((item) => group.codigos.includes(Number(item.codigo)) && Number(item.codigo) !== 13)) {
       const button = document.createElement('button');
-      button.type = 'button'; button.className = 'btn btn-outline-primary command-button';
+      button.type = 'button'; button.className = 'command-button';
       button.dataset.commandCode = command.codigo; button.dataset.tipo = group.tipo;
       button.dataset.estadoOriginal = command.activo ? 'ok' : 'error';
       button.textContent = command.nombre;
       button.setAttribute('aria-label', `Enviar comando ${command.nombre}`);
       button.disabled = !command.activo; button.dataset.estado = command.activo ? 'ok' : 'error';
+      button.dataset.accion = command.activo ? 'normal' : 'error';
       button.addEventListener('click', () => onClick(command.codigo));
       buttons.append(button);
     }

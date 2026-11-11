@@ -1,41 +1,16 @@
 :root {
-  --color-text: #212529;
-  --color-surface: #fff;
-  --color-page: #f8f9fa;
-  --color-border: #adb5bd;
-  --color-ok: #146c43;
-  --color-error: #b02a37;
-  --color-loading: #664d03;
-  --color-focus: #0d6efd;
-  --space-1: .25rem;
-  --space-2: .5rem;
-  --space-3: 1rem;
-  --space-4: 1.5rem;
-  --space-5: 2rem;
-  --radius-card: .5rem;
-  --radius-round: 50%;
-  --font-body: system-ui, sans-serif;
-  --font-size-base: 1rem;
-  --font-size-small: .875rem;
-  --touch-size: 2.75rem;
-  --joystick-size: min(78vw, 18rem);
-  --joystick-knob-size: 4.5rem;
-  --space-6: 2.75rem;
-  --space-7: 4rem;
-  --border-width: 1px;
-  --border-width-strong: .15rem;
-  --focus-width: .2rem;
-  --focus-offset: .15rem;
-  --font-size-heading: 1.75rem;
-  --font-size-section: 1.25rem;
-  --font-size-action: 1.35rem;
-  --font-size-event: 1.5rem;
-  --font-size-compact: .875rem;
-  --size-joystick-pointer: 3%;
-  --size-joystick-knob-x: 20%;
-  --size-joystick-knob-right: 80%;
-  --size-joystick-pointer-right: 4%;
-  --size-joystick-pointer-top: 46%;
-  --size-joystick-knob-line: .35rem;
-  --opacity-joystick-blocked: .42;
+  color-scheme: dark;
+  --page: #090d12; --surface: rgba(22, 29, 37, .92); --surface-raised: rgba(33, 42, 52, .94); --text: #f4f6f7; --muted: #b9c2ca;
+  --border: rgba(239, 246, 251, .2); --border-bright: rgba(255,255,255,.42); --ok: #65d99a; --error: #ff514a; --loading: #ffc65c;
+  --accent: #ffb52e; --accent-soft: #68420d; --accent-glow: rgba(255,181,46,.26); --focus: #fff; --stop: #e33832;
+  --space-0: 0px; --space-1: clamp(3px,.35vmin,6px); --space-2: clamp(6px,.7vmin,10px); --space-3: clamp(9px,1vmin,14px); --space-4: clamp(12px,1.5vmin,20px); --space-5: clamp(16px,2vmin,28px); --space-6: clamp(20px,2.5vmin,36px);
+  --radius-sm: 9px; --radius-card: clamp(14px,2vmin,22px); --radius-round: 50%; --radius-pill: 999px;
+  --blur: 18px; --shadow-card: 0 12px 36px rgba(0,0,0,.32); --shadow-inset: inset 0 1px 0 rgba(255,255,255,.13); --shadow-accent: 0 0 26px var(--accent-glow);
+  --font-body: Inter, ui-sans-serif, system-ui, sans-serif; --font-size-base: clamp(12px,1.2vmin,16px); --font-small: clamp(10px,.95vmin,13px); --font-heading: clamp(18px,2.8vmin,31px); --font-section: clamp(11px,1.15vmin,15px); --font-action: clamp(16px,2vmin,24px);
+  --touch-size: 46px; --joystick-size: clamp(128px,31vmin, min(35vh,390px)); --joystick-knob-size: clamp(48px,9vmin,92px); --joystick-knob-offset: 20%; --joystick-knob-far: 80%;
+  --border-width: 1px; --border-strong: 3px; --focus-width: 3px; --focus-offset: 3px; --blocked-opacity: .48;
+  --duration-fast: 120ms; --duration-mid: 240ms; --duration-drift: 22s; --pulse-duration: 2.2s; --size-marker: 4%; --size-marker-mid: 48%; --size-marker-side: 5%; --knob-line: 4px;
 }
+:root[data-tema="ambar"] { --accent: #ffb52e; --accent-soft:#68420d; --accent-glow:rgba(255,181,46,.26); }
+:root[data-tema="cian"] { --accent: #43d8ef; --accent-soft:#104a55; --accent-glow:rgba(67,216,239,.25); }
+:root[data-tema="neon"] { --accent: #c6ff37; --accent-soft:#3d5011; --accent-glow:rgba(198,255,55,.24); }

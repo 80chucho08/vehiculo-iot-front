@@ -1,69 +1,34 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-tema="ambar">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Panel de control web para vehículo IoT">
-  <title>Control · Vehículo IoT</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Cabina premium de control para vehículo IoT">
+  <title>Cabina · Control IoT</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="css/tokens.css" rel="stylesheet">
-  <link href="css/base.css" rel="stylesheet">
-  <link href="css/components.css" rel="stylesheet">
+  <link href="css/tokens.css" rel="stylesheet"><link href="css/base.css" rel="stylesheet"><link href="css/components.css" rel="stylesheet">
   <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/tema.js"></script>
+  <script type="module" src="js/feedback.js"></script>
 </head>
 <body>
-  <main class="container control-app">
-    <header class="app-header">
-      <h1 id="vehicle-name">Excavadora IoT</h1>
-      <p>Panel de control del vehículo <span id="vehicle-id">ID 1</span></p>
-      <p id="backend-connectivity" data-estado="cargando">Conexión del vehículo (dato reportado por el backend): Sin verificar</p>
+  <main class="control-app">
+    <header class="app-header glass">
+      <div class="brand"><span class="eyebrow">CABINA PREMIUM <span class="live-dot"></span></span><h1 id="vehicle-name">Excavadora IoT</h1><p>Unidad <span id="vehicle-id">ID 1</span><span class="backend" id="backend-connectivity" data-estado="cargando"> · vehículo sin verificar</span></p></div>
+      <section class="health" aria-label="Estado de servicios">
+        <article class="status-card" data-estado="cargando" id="ws-status"><span class="status-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h3l2-7 4 14 2-7h5"/></svg></span><div><h2>WebSocket WSS</h2><p>Conectando</p></div><span class="status-pulse" aria-hidden="true"></span><small>En línea no confirma conexión con el vehículo.</small></article>
+        <article class="status-card" data-estado="cargando" id="api-status"><span class="status-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg></span><div><h2>Servidor AWS · API de 21 servicios</h2><p>Comprobando</p></div><span class="status-pulse" aria-hidden="true"></span></article>
+        <article class="status-card" data-estado="cargando" id="db-status"><span class="status-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg></span><div><h2>Amazon RDS</h2><p>Sin verificar</p></div><span class="status-pulse" aria-hidden="true"></span></article>
+      </section>
+      <nav class="utility" aria-label="Preferencias"><label>Tema <select id="theme-select" aria-label="Tema de color"><option value="ambar">Ámbar</option><option value="cian">Cian</option><option value="neon">Neón</option></select></label><button class="utility-button" id="effects-toggle" type="button" aria-pressed="false">Efectos normales</button><button class="utility-button" id="sound-toggle" type="button" aria-pressed="false">Sonido: apagado</button><button class="utility-button" id="vibration-toggle" type="button" aria-pressed="true">Vibración: activa</button><button class="utility-button" id="fullscreen-toggle" type="button">Pantalla completa</button></nav>
     </header>
-
-    <section aria-labelledby="health-heading">
-      <h2 id="health-heading">Estado de servicios</h2>
-      <div class="row g-3">
-        <div class="col-12 col-md-4"><article class="status-card" data-estado="cargando" id="ws-status"><h3>◉ WebSocket WSS</h3><p>Conectando</p><small>En línea no confirma que el vehículo/ESP esté conectado.</small></article></div>
-        <div class="col-12 col-md-4"><article class="status-card" data-estado="cargando" id="api-status"><h3>▣ Servidor AWS · API de 21 servicios</h3><p>Comprobando</p></article></div>
-        <div class="col-12 col-md-4"><article class="status-card" data-estado="cargando" id="db-status"><h3>▤ Amazon RDS</h3><p>Sin verificar</p></article></div>
-      </div>
+    <p class="rotate-hint" id="rotate-hint"><span>Gira el teléfono para mejor control</span><button type="button" aria-label="Descartar sugerencia">×</button></p>
+    <section class="joystick-zone glass" aria-label="Controles de movimiento">
+      <article class="joystick-panel"><p id="joystick-grua-notice" class="joystick-notice"></p><div class="joystick-control joystick-grua" id="joystick-grua" role="application" tabindex="0" aria-label="Joystick de grúa. Use flechas del teclado o arrastre dentro del área" data-estado="ok"><span class="joystick-direction direction-up">↑</span><span class="joystick-direction direction-right">→</span><span class="joystick-direction direction-down">↓</span><span class="joystick-direction direction-left">←</span><span class="joystick-knob joystick-grua-knob" id="joystick-grua-knob" data-direction="centro" aria-hidden="true"></span></div><h2>GRÚA</h2><p class="axis-label">ELEVACIÓN · GIRO</p></article>
+      <article class="joystick-panel"><p id="joystick-garra-notice" class="joystick-notice"></p><div class="joystick-control joystick-garra" id="joystick-garra" role="application" tabindex="0" aria-label="Joystick de garra. Use flechas del teclado o arrastre dentro del área" data-estado="ok"><span class="joystick-direction direction-up">↑</span><span class="joystick-direction direction-right">→</span><span class="joystick-direction direction-down">↓</span><span class="joystick-direction direction-left">←</span><span class="joystick-knob joystick-garra-knob" id="joystick-garra-knob" data-direction="centro" aria-hidden="true"></span></div><h2>GARRA</h2><p class="axis-label">ABRIR · CERRAR</p></article>
     </section>
-
-    <section aria-labelledby="joystick-heading">
-      <h2 id="joystick-heading">Joysticks</h2>
-      <div class="joystick-grid">
-        <article class="joystick-panel" aria-labelledby="joystick-grua-heading">
-          <h3 id="joystick-grua-heading">Grúa</h3>
-          <p id="joystick-grua-notice" role="status"></p>
-          <div class="joystick-control joystick-grua" id="joystick-grua" role="application" tabindex="0" aria-label="Joystick de grúa. Use flechas del teclado o arrastre dentro del área" data-estado="ok">
-            <span class="joystick-direction direction-up">↑</span><span class="joystick-direction direction-right">→</span><span class="joystick-direction direction-down">↓</span><span class="joystick-direction direction-left">←</span><span class="joystick-knob joystick-grua-knob" id="joystick-grua-knob" data-direction="centro" aria-hidden="true"></span>
-          </div>
-        </article>
-        <article class="joystick-panel" aria-labelledby="joystick-garra-heading">
-          <h3 id="joystick-garra-heading">Garra</h3>
-          <p id="joystick-garra-notice" role="status"></p>
-          <div class="joystick-control joystick-garra" id="joystick-garra" role="application" tabindex="0" aria-label="Joystick de garra. Use flechas del teclado o arrastre dentro del área" data-estado="ok">
-            <span class="joystick-direction direction-up">↑</span><span class="joystick-direction direction-right">→</span><span class="joystick-direction direction-down">↓</span><span class="joystick-direction direction-left">←</span><span class="joystick-knob joystick-garra-knob" id="joystick-garra-knob" data-direction="centro" aria-hidden="true"></span>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section aria-labelledby="commands-heading"><h2 id="commands-heading">Comandos</h2><div id="command-groups"></div></section>
-
-    <section class="priority-section" aria-label="Detención prioritaria">
-      <button class="btn btn-danger stop-button" id="stop-button" type="button">DETENER</button>
-    </section>
-
-    <section aria-labelledby="demo-heading">
-      <h2 id="demo-heading">Demostración</h2>
-      <label for="demo-select" class="form-label">Selecciona una demo</label>
-      <div class="demo-controls"><select class="form-select" id="demo-select"><option value="">Cargando demos…</option></select><button class="btn btn-primary" id="demo-start" type="button">Ejecutar demo</button><button class="btn btn-secondary" id="demo-cancel" type="button">Cancelar demo</button></div>
-    </section>
-
-    <section aria-labelledby="actions-heading"><h2 id="actions-heading">Mensajes de acción</h2><div id="action-messages" class="action-messages" aria-live="polite" aria-atomic="false"></div></section>
-    <section aria-labelledby="events-heading"><h2 id="events-heading">Últimos eventos WebSocket</h2><ol id="event-log" class="event-log" aria-live="polite"></ol></section>
-    <footer><p>Desarrollado por <span id="author-name">[nombre completo]</span> · <span id="current-year"></span></p></footer>
+    <section class="command-deck glass"><div class="action-area"><span class="eyebrow">ESTADO DE CABINA</span><div id="action-messages" class="action-messages" aria-live="polite" aria-atomic="false"><p>Cabina lista</p></div></div><section class="demo-inline" aria-label="Demostración"><label for="demo-select">RUTINA DEMO</label><div class="demo-controls"><select id="demo-select"><option value="">Cargando demos…</option></select><button class="btn btn-primary" id="demo-start" type="button">Ejecutar</button><button class="btn btn-secondary" id="demo-cancel" type="button">Cancelar</button></div></section><div id="command-groups" class="system-commands" aria-label="Controles de sistema"></div><button class="btn stop-button" id="stop-button" type="button">DETENER</button><button class="demo-open" id="demo-open" type="button">DEMO</button><footer>Desarrollado por <span id="author-name">[nombre completo]</span> · <span id="current-year"></span></footer></section>
+    <section class="events-panel glass" aria-labelledby="events-heading"><button id="events-toggle" class="events-toggle" type="button" aria-expanded="false">Eventos <span>⌄</span></button><h2 id="events-heading">Registro de eventos</h2><ol id="event-log" class="event-log" aria-live="polite"></ol></section>
+    <dialog id="demo-sheet" class="demo-sheet"><button class="sheet-close" id="demo-close" type="button" aria-label="Cerrar selector de demo">×</button><h2>Selecciona una demo</h2><label for="demo-select-sheet">Rutinas disponibles</label><select id="demo-select-sheet" aria-label="Selecciona una demo"></select><div><button id="demo-sheet-start" type="button">Ejecutar</button><button id="demo-sheet-cancel" type="button">Cancelar demo</button></div></dialog>
   </main>
-</body>
-</html>
+</body></html>
