@@ -3,11 +3,22 @@ const write = (key, value) => { try { localStorage.setItem(key, String(value)); 
 let soundEnabled = read('cabina-sonido', false);
 let vibrationEnabled = read('cabina-vibracion', true);
 let audio = null;
+let audioUnlocked = false;
 const soundButton = document.getElementById('sound-toggle');
 const vibrationButton = document.getElementById('vibration-toggle');
 function refresh() { soundButton.textContent = `Sonido: ${soundEnabled ? 'activo' : 'apagado'}`; soundButton.setAttribute('aria-pressed', String(soundEnabled)); vibrationButton.textContent = `Vibración: ${vibrationEnabled ? 'activa' : 'apagada'}`; vibrationButton.setAttribute('aria-pressed', String(vibrationEnabled)); }
-function gestureAudio() { if (!soundEnabled) return null; try { const Context = window.AudioContext || window.webkitAudioContext; if (!Context) return null; if (!audio) audio = new Context(); if (audio.state === 'suspended') audio.resume(); return audio; } catch { return null; } }
-function tone(freq = 640, duration = .065, type = 'sine', volume = .035) { const ctx = gestureAudio(); if (!ctx) return; try { const oscillator = ctx.createOscillator(), gain = ctx.createGain(); oscillator.type = type; oscillator.frequency.value = freq; gain.gain.setValueAtTime(volume, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + duration); oscillator.connect(gain); gain.connect(ctx.destination); oscillator.start(); oscillator.stop(ctx.currentTime + duration); } catch {} }
+function unlockAudio() {
+  audioUnlocked = true;
+  document.removeEventListener('pointerdown', unlockAudio);
+  document.removeEventListener('keydown', unlockAudio);
+  document.removeEventListener('click', unlockAudio);
+  if (soundEnabled) gestureAudio();
+}
+document.addEventListener('pointerdown', unlockAudio, { once: true });
+document.addEventListener('keydown', unlockAudio, { once: true });
+document.addEventListener('click', unlockAudio, { once: true });
+function gestureAudio() { if (!audioUnlocked || !soundEnabled) return null; try { const Context = window.AudioContext || window.webkitAudioContext; if (!Context) return null; if (!audio) audio = new Context(); if (audio.state === 'suspended') audio.resume().catch(() => {}); return audio; } catch { return null; } }
+function tone(freq = 640, duration = .065, type = 'sine', volume = .035) { if (!audioUnlocked || !soundEnabled) return; const ctx = gestureAudio(); if (!ctx) return; try { const oscillator = ctx.createOscillator(), gain = ctx.createGain(); oscillator.type = type; oscillator.frequency.value = freq; gain.gain.setValueAtTime(volume, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + duration); oscillator.connect(gain); gain.connect(ctx.destination); oscillator.start(); oscillator.stop(ctx.currentTime + duration); } catch {} }
 function vibrate(pattern) { try { if (vibrationEnabled && typeof navigator.vibrate === 'function') navigator.vibrate(pattern); } catch {} }
 soundButton.addEventListener('click', () => { soundEnabled = !soundEnabled; write('cabina-sonido', soundEnabled); refresh(); if (soundEnabled) tone(720,.07); });
 vibrationButton.addEventListener('click', () => { vibrationEnabled = !vibrationEnabled; write('cabina-vibracion', vibrationEnabled); refresh(); if (vibrationEnabled) vibrate(20); });

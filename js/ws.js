@@ -41,15 +41,13 @@ export function createWebSocket(context) {
     retryTimer = setTimeout(() => { retryTimer = null; connect(); }, delay);
   }
 
-  function connect(force = false) {
+  function connect() {
     if (stopped) return;
     if (navigator.onLine === false) { setStatus('Desconectado', 'error'); return; }
-    if (socket?.readyState === WebSocket.OPEN) return;
-    if (socket?.readyState === WebSocket.CONNECTING && !force) return;
+    if (socket?.readyState === WebSocket.OPEN || socket?.readyState === WebSocket.CONNECTING) return;
 
     clearTimeout(retryTimer); retryTimer = null;
     clearConnectionTimers();
-    if (socket && socket.readyState < WebSocket.CLOSING) socket.close();
     const currentAttempt = ++attempt;
     setStatus(hasOpened || retry ? 'Reconectando' : 'Conectando', 'cargando');
 
@@ -68,6 +66,11 @@ export function createWebSocket(context) {
     candidate.addEventListener('open', () => {
       if (socket !== candidate || currentAttempt !== attempt) return;
       clearTimeout(connectionTimer); connectionTimer = null;
+      if (navigator.onLine === false) {
+        setStatus('Desconectado', 'error');
+        candidate.close();
+        return;
+      }
       justReconnected = hasOpened;
       hasOpened = true;
       setStatus('En linea', 'ok');
@@ -109,10 +112,11 @@ export function createWebSocket(context) {
   function onOffline() {
     clearTimeout(retryTimer); retryTimer = null;
     setStatus('Desconectado', 'error');
-    if (socket && socket.readyState < WebSocket.CLOSING) socket.close();
+    if (socket?.readyState === WebSocket.OPEN) socket.close();
   }
   function reconnectWhenAvailable() {
-    if (socket?.readyState !== WebSocket.OPEN) connect(true);
+    if (navigator.onLine === false) return;
+    if (!socket || socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) connect();
   }
 
   window.addEventListener('online', reconnectWhenAvailable);
@@ -124,11 +128,11 @@ export function createWebSocket(context) {
     close() {
       stopped = true;
       clearTimeout(retryTimer); retryTimer = null;
-      clearConnectionTimers();
+      if (socket?.readyState !== WebSocket.CONNECTING) clearConnectionTimers();
       window.removeEventListener('online', reconnectWhenAvailable);
       window.removeEventListener('offline', onOffline);
       document.removeEventListener('visibilitychange', reconnectWhenAvailable);
-      if (socket && socket.readyState < WebSocket.CLOSING) socket.close(1000, 'Cierre de aplicacion');
+      if (socket?.readyState === WebSocket.OPEN) socket.close(1000, 'Cierre de aplicacion');
     }
   };
 }
