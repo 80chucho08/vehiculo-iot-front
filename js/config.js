@@ -1,4 +1,7 @@
 export const API_BASE = 'https://vehiculo-iot-itp.duckdns.org';
+export const APP_NAME = 'Carrito Jesus';
+export const AUTOR_NOMBRE = '80chucho08';
+export const ANIO = 2026;
 export const VEHICLE_ID = 1;
 export const WS_URL = `${API_BASE.replace(/^https:/, 'wss:')}/ws/vehiculos/${VEHICLE_ID}`;
 // Métodos de detener y demos deben CONFIRMAR EN SWAGGER.

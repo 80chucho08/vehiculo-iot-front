@@ -7,7 +7,7 @@
   --radius-sm: 9px; --radius-card: clamp(14px,2vmin,22px); --radius-round: 50%; --radius-pill: 999px;
   --blur: 18px; --shadow-card: 0 12px 36px rgba(0,0,0,.32); --shadow-inset: inset 0 1px 0 rgba(255,255,255,.13); --shadow-accent: 0 0 26px var(--accent-glow);
   --font-body: Inter, ui-sans-serif, system-ui, sans-serif; --font-size-base: clamp(12px,1.2vmin,16px); --font-small: clamp(10px,.95vmin,13px); --font-heading: clamp(18px,2.8vmin,31px); --font-section: clamp(11px,1.15vmin,15px); --font-action: clamp(16px,2vmin,24px);
-  --touch-size: 46px; --joystick-size: clamp(128px,31vmin, min(35vh,390px)); --joystick-knob-size: clamp(48px,9vmin,92px); --joystick-knob-offset: 20%; --joystick-knob-far: 80%;
+  --touch-size: 44px; --joystick-size: 100%; --joystick-knob-size: 25%; --joystick-knob-offset: 20%; --joystick-knob-far: 80%;
   --border-width: 1px; --border-strong: 3px; --focus-width: 3px; --focus-offset: 3px; --blocked-opacity: .48;
   --duration-fast: 120ms; --duration-mid: 240ms; --duration-drift: 22s; --pulse-duration: 2.2s; --size-marker: 4%; --size-marker-mid: 48%; --size-marker-side: 5%; --knob-line: 4px;
 }

@@ -11,28 +11,33 @@ export function createActionLogger() {
   const container = byId('action-messages');
   return (message, status = 'ok', correlation = '') => {
     const item = document.createElement('p'); item.dataset.estado = status;
-    item.textContent = `${new Date().toLocaleTimeString()} | ${message}${correlation ? ` | solicitud ${correlation}` : ''}`;
+    item.textContent = `${message}${correlation ? ` | solicitud ${correlation}` : ''}`;
     container.prepend(item); while (container.children.length > 12) container.lastElementChild.remove();
   };
 }
 export function logEvent(message, alreadyLogged = false) {
   if (alreadyLogged) return;
   const item = document.createElement('li'); item.className = 'event-item';
+  const time = document.createElement('time'); time.dateTime = new Date().toISOString(); time.textContent = new Date().toLocaleTimeString();
   const type = document.createElement('strong'); type.textContent = typeof message?.tipo === 'string' ? message.tipo : 'tipo desconocido';
   const raw = document.createElement('pre');
   try { raw.textContent = JSON.stringify(message, null, 2); } catch { raw.textContent = String(message); }
-  item.append(type, raw); byId('event-log').prepend(item);
+  item.append(time, document.createTextNode(' · '), type, raw); byId('event-log').prepend(item);
   while (byId('event-log').children.length > 10) byId('event-log').lastElementChild.remove();
 }
-export function setVehicleName(name) { byId('vehicle-name').textContent = name; }
+export function setVehicleName(name) { byId('vehicle-name').textContent = typeof name === 'string' && name.trim() ? name : 'Vehículo sin identificar'; }
 export function setBackendConnectivity(value) {
-  const node = byId('backend-connectivity'); node.textContent = `Conexion del vehiculo (dato reportado por el backend): ${String(value)}`;
+  const node = byId('backend-connectivity'); node.textContent = `Unidad ID 1 · vehículo ${value ? 'verificado' : 'sin verificar'}`;
   node.dataset.estado = value ? 'ok' : 'error';
 }
 
 export function renderCommands(onClick, stopCommand = () => {}) {
   const root = byId('command-groups'); root.replaceChildren();
   const commands = getState().commands;
+  if (!commands.length) {
+    for (let index = 0; index < 4; index += 1) { const skeleton = document.createElement('button'); skeleton.type = 'button'; skeleton.className = 'command-button skeleton'; skeleton.dataset.estadoOriginal = 'error'; skeleton.disabled = true; skeleton.setAttribute('aria-label', 'Comando no disponible'); skeleton.textContent = ' '; root.append(skeleton); }
+    return;
+  }
   for (const group of GRUPOS) {
     // Los sostenidos se controlan con sus joysticks; los botones son solo toggles.
     if (group.tipo !== 'toggle') continue;
@@ -44,7 +49,10 @@ export function renderCommands(onClick, stopCommand = () => {}) {
       button.type = 'button'; button.className = 'command-button';
       button.dataset.commandCode = command.codigo; button.dataset.tipo = group.tipo;
       button.dataset.estadoOriginal = command.activo ? 'ok' : 'error';
-      button.textContent = command.nombre;
+      const icon = document.createElement('span'); icon.className = 'command-icon'; icon.setAttribute('aria-hidden', 'true');
+      icon.textContent = ({ 5: '◉', 6: '✦', 7: '⌁', 8: '●' })[Number(command.codigo)] || '◇';
+      const label = document.createElement('span'); label.className = 'command-label'; label.textContent = command.nombre;
+      button.append(icon, label);
       button.setAttribute('aria-label', `Enviar comando ${command.nombre}`);
       button.disabled = !command.activo; button.dataset.estado = command.activo ? 'ok' : 'error';
       button.dataset.accion = command.activo ? 'normal' : 'error';
@@ -53,6 +61,8 @@ export function renderCommands(onClick, stopCommand = () => {}) {
     }
     if (buttons.children.length) { section.append(heading, buttons); root.append(section); }
   }
+  const rendered = root.querySelectorAll('.command-button').length;
+  for (let index = rendered; index < 4; index += 1) { const skeleton = document.createElement('button'); skeleton.type = 'button'; skeleton.className = 'command-button skeleton'; skeleton.dataset.estadoOriginal = 'error'; skeleton.disabled = true; skeleton.setAttribute('aria-label', 'Comando no disponible'); skeleton.textContent = ' '; root.append(skeleton); }
 
   const missingFor = (map) => Object.entries(map)
     .filter(([, code]) => !commands.some((item) => Number(item.codigo) === code && item.activo))
