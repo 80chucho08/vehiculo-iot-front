@@ -1,7 +1,14 @@
 export const API_BASE = 'https://vehiculo-iot-itp.duckdns.org';
 export const APP_NAME = 'Carrito Jesus';
-export const AUTOR_NOMBRE = '80chucho08';
+export const AUTOR_NOMBRE = 'Navarro Carbajal Jesus Alfonso';
+export const MATRICULA = '22200964';
 export const ANIO = 2026;
+// Páginas de la navegación principal (rutas relativas a la raíz del sitio).
+// Para agregar una página nueva basta con añadir una entrada aquí.
+export const PAGINAS = Object.freeze([
+  Object.freeze({ id: 'control', href: 'index.html', etiqueta: 'Control', icono: 'control' }),
+  Object.freeze({ id: 'eventos', href: 'eventos.html', etiqueta: 'Eventos', icono: 'eventos' })
+]);
 export const VEHICLE_ID = 1;
 export const WS_URL = `${API_BASE.replace(/^https:/, 'wss:')}/ws/vehiculos/${VEHICLE_ID}`;
 // Métodos de detener y demos deben CONFIRMAR EN SWAGGER.

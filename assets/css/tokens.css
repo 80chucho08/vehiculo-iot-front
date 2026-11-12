@@ -1,3 +1,5 @@
+/* Inter variable (SIL OFL 1.1, ver assets/fonts/OFL.txt). Ruta relativa a este archivo. */
+@font-face{font-family:Inter;font-style:normal;font-weight:100 900;font-display:swap;src:url("../fonts/inter-latin-wght-normal.woff2") format("woff2")}
 :root {
   color-scheme: dark;
   --page: #090d12; --surface: rgba(22, 29, 37, .92); --surface-raised: rgba(33, 42, 52, .94); --text: #f4f6f7; --muted: #b9c2ca;

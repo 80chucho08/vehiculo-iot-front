@@ -1,4 +1,4 @@
-﻿# Carrito Jesus · Panel de Control IoT
+# Carrito Jesus · Panel de Control IoT
 
 > **Interfaz web moderna, modular y reactiva para el control y telemetría en tiempo real de un vehículo IoT.**  
 > Desarrollado con JavaScript vanilla (ES Modules), HTML5 semántico y CSS3 avanzado, sin dependencias externas ni procesos de compilación.
@@ -16,10 +16,12 @@
 7. [Protocolo de Comunicación](#-protocolo-de-comunicación)
    - [API REST](#api-rest)
    - [WebSocket WSS (Telemetría y Eventos)](#websocket-wss-telemetría-y-eventos)
-8. [Configuración (`js/config.js`)](#-configuración-jsconfigjs)
+8. [Configuración (`assets/js/core/config.js`)](#-configuración-assetsjscoreconfigjs)
 9. [Instalación y Ejecución Local](#-instalación-y-ejecución-local)
-10. [Experiencia de Usuario y Accesibilidad](#-experiencia-de-usuario-y-accesibilidad)
-11. [Créditos](#-créditos)
+10. [Cómo agregar una página nueva](#-cómo-agregar-una-página-nueva)
+11. [Despliegue en GitHub Pages (mayúsculas y rutas)](#-despliegue-en-github-pages-mayúsculas-y-rutas)
+12. [Experiencia de Usuario y Accesibilidad](#-experiencia-de-usuario-y-accesibilidad)
+13. [Créditos](#-créditos)
 
 ---
 
@@ -56,9 +58,11 @@ La aplicación opera como una cabina de mando interactiva capaz de adaptarse flu
     3. **Amazon RDS:** Estado de conexión de la base de datos relacional.
   - Sondeo periódico inteligente con retroceso exponencial (*exponential backoff*) y reintentos ante recuperación de conectividad.
 
-- **📊 Registro de Eventos en Tiempo Real (Event Log):**
-  - Panel lateral en escritorio y modal desplegable en dispositivos móviles.
-  - Inspección de eventos WebSocket entrantes y acciones locales con marcas temporales.
+- **📊 Registro de Eventos (`eventos.html`):**
+  - Página independiente con su propia conexión WSS de **solo lectura** al mismo vehículo (no envía nada).
+  - Lista de eventos recibidos con hora, tipo y JSON crudo (máximo 200 entradas), con botones **Pausar** y **Limpiar**.
+  - Solo muestra lo recibido desde que se abrió la página: un evento WebSocket confirma la publicación del backend, no la ejecución física.
+  - La pantalla de control conserva únicamente la última acción y su estado.
 
 - **🔊 Feedback Sensorial Avanzado:**
   - **Web Audio API:** Síntesis de sonido en tiempo real con osciladores (sin requerir archivos de audio externos) para clics, confirmaciones, alertas y errores.
@@ -101,62 +105,80 @@ La aplicación opera como una cabina de mando interactiva capaz de adaptarse flu
 
 ```text
 control-iot/
-├── index.html                   # Marcado principal HTML5 semántico y accesible
-├── README.md                    # Documentación técnica del proyecto
-├── assets/
-│   └── favicon.svg              # Isotipo vectorial SVG del vehículo
-├── css/
-│   ├── tokens.css               # Variables de diseño (colores, temas, sombras, tipografía)
-│   ├── base.css                 # Maquetación global, CSS Grid responsivo y componentes
-│   └── components.css           # Estilos de botones, microinteracciones y animaciones
-├── data/
-│   ├── grupos.js                # Definición de grupos de comandos (Garra, Grúa, Sistemas)
-│   └── joystick-map.js          # Asignación de direcciones a códigos de comando
-└── js/
-    ├── api.js                   # Cliente HTTP con Fetch, AbortController y normalización de errores
-    ├── commands.js              # Despacho de comandos, colas, exclusión y parada de seguridad
-    ├── config.js                # Parámetros globales (URLs, rutas, ID de vehículo, timeouts)
-    ├── demo.js                  # Control de rutinas demo (carga, ejecución, cancelación y timeouts)
-    ├── events.js                # Despachador y discriminador de mensajes WebSocket recibidos
-    ├── feedback.js              # Efectos de audio sintetizado y vibración háptica
-    ├── health.js                # Sondeo periódico de salud de la API y Amazon RDS
-    ├── joystick.js              # Lógica de interacción para joysticks (PointerEvents y teclado)
-    ├── main.js                  # Punto de entrada de la aplicación y orquestación
-    ├── state.js                 # Almacén reactivo de estado global (patrón observador)
-    ├── tema.js                  # Gestión de temas de color, pantalla completa y modales
-    ├── ui.js                    # Renderizado dinámico del DOM y registro de acciones
-    └── ws.js                    # Cliente WebSocket con reconexión automática y detección offline
+├── index.html                    # CONTROL: pantalla principal (cabina con joysticks, demos y DETENER)
+├── eventos.html                  # Registro de eventos WebSocket (solo lectura)
+├── README.md
+└── assets/
+    ├── css/
+    │   ├── tokens.css            # Variables de diseño, temas y @font-face de Inter
+    │   ├── base.css              # Compartido: reset, barra superior, estado de servicios, navegación, créditos
+    │   ├── components.css        # Compartido: botones, hojas <dialog>, movimiento reducido
+    │   ├── control.css           # Solo index.html: cuadrícula de cabina, joysticks y consola
+    │   └── eventos.css           # Solo eventos.html: lista de eventos
+    ├── js/
+    │   ├── core/                 # Reutilizable por cualquier página
+    │   │   ├── config.js         # URLs, rutas, ID de vehículo, timeouts, créditos y lista de PAGINAS
+    │   │   ├── api.js            # Cliente HTTP (fetch + AbortController + ApiError)
+    │   │   ├── ws.js             # Cliente WebSocket con reconexión y detección offline
+    │   │   ├── health.js         # Sondeo de salud de la API y Amazon RDS
+    │   │   ├── state.js          # Estado global observable
+    │   │   ├── events.js         # Despachador de mensajes WebSocket
+    │   │   ├── feedback.js       # Sonido sintetizado y vibración
+    │   │   ├── tema.js           # Tema de color y efectos reducidos (localStorage)
+    │   │   └── layout.js         # Navegación entre páginas y pie de créditos
+    │   ├── control/              # Módulos de index.html
+    │   │   ├── main.js           # Punto de entrada del control
+    │   │   ├── commands.js       # Despacho de comandos, colas y DETENER
+    │   │   ├── joystick.js       # Joysticks (PointerEvents y teclado)
+    │   │   ├── demo.js           # Rutinas demo
+    │   │   └── ui.js             # Render de comandos/demos, última acción, diálogos y popover
+    │   ├── eventos/
+    │   │   └── main.js           # Punto de entrada de eventos.html
+    │   └── data/
+    │       ├── joystick-map.js   # Dirección → código de comando
+    │       └── grupos.js         # Grupos de comandos (Garra, Grúa, Sistemas)
+    ├── img/
+    │   ├── favicon.svg           # Favicon provisional (monograma CJ)
+    │   ├── favicon-32.png
+    │   ├── apple-touch-icon.png  # 180×180
+    │   └── logo-marca.svg        # Logo provisional
+    └── fonts/
+        └── inter-latin-wght-normal.woff2   # Inter variable, subconjunto latino (SIL OFL 1.1)
 ```
+
+> `core/events.js` importa `control/commands.js` para correlacionar solicitudes con eventos; `eventos.html` lo carga pero nunca llama a funciones que envíen peticiones.
 
 ---
 
 ## 🧩 Módulos y Componentes
 
 ### 1. Núcleo y Estado
-- **`js/main.js`**: Orquesta el arranque de la aplicación. Inicializa comprobaciones de salud, conecta el WebSocket, carga catálogos de comandos y rutinas demo, vincula los joysticks y escucha cambios en el estado reactivo.
-- **`js/state.js`**: Implementa un contenedor de estado ligero con suscripciones de tipo observador (`getState()`, `updateState()`, `subscribe()`).
+- **`control/main.js`**: Orquesta el arranque de la aplicación. Inicializa comprobaciones de salud, conecta el WebSocket, carga catálogos de comandos y rutinas demo, vincula los joysticks y escucha cambios en el estado reactivo.
+- **`core/state.js`**: Implementa un contenedor de estado ligero con suscripciones de tipo observador (`getState()`, `updateState()`, `subscribe()`).
 
 ### 2. Comunicación y Red
-- **`js/api.js`**: Provee la función `request(path, options)` para llamadas HTTP con control de tiempo de espera (`AbortController`), parseo tolerante a JSON y emisión de instancias `ApiError` estructuradas.
-- **`js/ws.js`**: Establece el enlace WebSocket seguro (`WSS`). Administra reconexiones automáticas con variación aleatoria (*jitter*), supervisa cambios de red (`online`/`offline`) y procesa eventos de visibilidad de pestaña.
-- **`js/events.js`**: Recibe los mensajes deserializados del WebSocket, filtra eventos dirigidos al `VEHICLE_ID` configurado y despacha manejadores específicos (`estado_inicial`, `comando_individual_completado`, `demo_completada`).
-- **`js/health.js`**: Ejecuta verificaciones periódicas de estado contra la API y la base de datos RDS, adaptando el intervalo según la disponibilidad de la red.
+- **`core/api.js`**: Provee la función `request(path, options)` para llamadas HTTP con control de tiempo de espera (`AbortController`), parseo tolerante a JSON y emisión de instancias `ApiError` estructuradas.
+- **`core/ws.js`**: Establece el enlace WebSocket seguro (`WSS`). Administra reconexiones automáticas con variación aleatoria (*jitter*), supervisa cambios de red (`online`/`offline`) y procesa eventos de visibilidad de pestaña.
+- **`core/events.js`**: Recibe los mensajes deserializados del WebSocket, filtra eventos dirigidos al `VEHICLE_ID` configurado y despacha manejadores específicos (`estado_inicial`, `comando_individual_completado`, `demo_completada`).
+- **`core/health.js`**: Ejecuta verificaciones periódicas de estado contra la API y la base de datos RDS, adaptando el intervalo según la disponibilidad de la red.
 
 ### 3. Mecánica de Control
-- **`js/joystick.js`**: Convierte el movimiento en coordenadas del cursor o toques de pantalla en desplazamientos cardinales (`arriba`, `abajo`, `izquierda`, `derecha`) empleando una zona muerta central y un umbral de histéresis para evitar fluctuaciones en diagonales.
-- **`js/commands.js`**: Regula el flujo de emisión de comandos. Distingue entre comandos sostenidos (movimiento) y de alternancia (*toggle*), administra una cola de toggles para evitar saturar el canal y ejecuta detenciones de seguridad automáticas en caso de fallo de red.
-- **`js/demo.js`**: Gestiona el ciclo de vida de rutinas demostrativas, asegurando que los controles manuales permanezcan deshabilitados hasta que el backend reporte la conclusión de la rutina o se cumpla el tiempo límite de seguridad.
+- **`control/joystick.js`**: Convierte el movimiento en coordenadas del cursor o toques de pantalla en desplazamientos cardinales (`arriba`, `abajo`, `izquierda`, `derecha`) empleando una zona muerta central y un umbral de histéresis para evitar fluctuaciones en diagonales.
+- **`control/commands.js`**: Regula el flujo de emisión de comandos. Distingue entre comandos sostenidos (movimiento) y de alternancia (*toggle*), administra una cola de toggles para evitar saturar el canal y ejecuta detenciones de seguridad automáticas en caso de fallo de red.
+- **`control/demo.js`**: Gestiona el ciclo de vida de rutinas demostrativas, asegurando que los controles manuales permanezcan deshabilitados hasta que el backend reporte la conclusión de la rutina o se cumpla el tiempo límite de seguridad.
 
 ### 4. Presentación e Interacción
-- **`js/ui.js`**: Encargado de construir dinámicamente los botones de comandos según el catálogo disponible, actualizar tarjetas de salud, mostrar mensajes de estado con identificador de correlación y gestionar el registro de eventos.
-- **`js/feedback.js`**: Genera tonos sintetizados mediante `AudioContext` y activa secuencias de vibración mediante `navigator.vibrate()`.
-- **`js/tema.js`**: Administra la persistencia de preferencias de usuario en `localStorage` (tema cromático, efectos reducidos, estado de vibración) y controla la apertura/cierre de ventanas modales (`<dialog>`).
+- **`control/ui.js`**: Encargado de construir dinámicamente los botones de comandos según el catálogo disponible, actualizar tarjetas de salud, mostrar la última acción con su estado e inicializar diálogos, pantalla completa, popover de WebSocket y hoja de demos.
+- **`core/feedback.js`**: Genera tonos sintetizados mediante `AudioContext` y activa secuencias de vibración mediante `navigator.vibrate()`.
+- **`core/tema.js`**: Aplica y guarda en `localStorage` el tema cromático y los efectos reducidos en todas las páginas.
+- **`core/layout.js`**: Genera la navegación entre páginas (`montarNavegacion`) a partir de `PAGINAS` y el pie de créditos (`montarCreditos`).
+- **`eventos/main.js`**: Abre una conexión WSS de solo lectura y pinta cada evento con `textContent` (nunca `innerHTML`).
 
 ---
 
 ## 🕹 Mapeo de Comandos y Controles
 
-Los comandos del vehículo se organizan en `data/grupos.js` y `data/joystick-map.js`:
+Los comandos del vehículo se organizan en `assets/js/data/grupos.js` y `assets/js/data/joystick-map.js`:
 
 ### 1. Grúa (Comandos Sostenidos)
 | Dirección | Código de Comando | Función |
@@ -215,15 +237,17 @@ Los comandos del vehículo se organizan en `data/grupos.js` y `data/joystick-map
 
 ---
 
-## ⚙ Configuración (`js/config.js`)
+## ⚙ Configuración (`assets/js/core/config.js`)
 
-Todos los parámetros de entorno y comportamiento se centralizan en [`js/config.js`](file:///c:/Users/chuch/Documents/UNI/9no/IoT/Proyecto%20carrito/vehiculo_iot_front/control-iot/js/config.js):
+Todos los parámetros de entorno y comportamiento se centralizan en [`assets/js/core/config.js`](assets/js/core/config.js):
 
 ```javascript
 export const API_BASE = 'https://vehiculo-iot-itp.duckdns.org';
 export const APP_NAME = 'Carrito Jesus';
-export const AUTOR_NOMBRE = '80chucho08';
+export const AUTOR_NOMBRE = 'Navarro Carbajal Jesus Alfonso';
+export const MATRICULA = '22200964';
 export const ANIO = 2026;
+export const PAGINAS = [ /* { id, href, etiqueta, icono } — navegación entre páginas */ ];
 export const VEHICLE_ID = 1;
 export const WS_URL = `${API_BASE.replace(/^https:/, 'wss:')}/ws/vehiculos/${VEHICLE_ID}`;
 
@@ -235,29 +259,69 @@ export const JOYSTICK_AXIS_HYSTERESIS = 0.12; // Tolerancia angular para evitar 
 export const TOGGLE_INTERRUPTS_MOVEMENT = true;// Define si un toggle detiene el movimiento sostenido activo
 ```
 
+El pie de ambas páginas se genera como `Desarrollado por {AUTOR_NOMBRE} · {MATRICULA} · {ANIO}`.
+
 ---
 
 ## 💻 Instalación y Ejecución Local
 
-Dado que el proyecto utiliza módulos nativos de JavaScript (`<script type="module">`), los archivos deben ser servidos a través de un servidor web local (no es posible abrirlos directamente mediante el protocolo `file://` debido a las restricciones de seguridad CORS del navegador).
+El proyecto usa módulos nativos (`<script type="module">`), así que debe servirse con un servidor estático; abrir el archivo con `file://` no funciona.
 
-### Opción 1: Python (Recomendada)
+### Opción 1: Node.js (npx)
 ```sh
 # Dentro de la carpeta control-iot:
-python -m http.server 8000
-```
-Accede a `http://localhost:8000/`.
-
-### Opción 2: Node.js (npx)
-```sh
-# Servidor estático instantáneo con serve o http-server
 npx serve .
 # o bien
 npx http-server -p 8000
 ```
 
+### Opción 2: Python
+```sh
+python -m http.server 8000
+```
+Accede a `http://localhost:8000/` (control) y `http://localhost:8000/eventos.html` (eventos).
+
+> **Windows:** si la consola muestra *"Expected a JavaScript module script but the server responded with a MIME type of text/plain"*, el registro de Windows tiene `.js` asociado a `text/plain` y `http.server` lo hereda. Usa la opción de Node.js o corrige la clave `HKEY_CLASSES_ROOT\.js` → `Content Type = text/javascript`, y recarga sin caché.
+
+### Probar desde una subruta (como GitHub Pages)
+GitHub Pages publica el sitio en `https://<usuario>.github.io/control-iot/`. Para reproducirlo, sirve la carpeta **padre** y abre la subruta:
+```sh
+# Desde la carpeta que contiene control-iot/
+npx serve . -l 8000
+```
+Abre `http://localhost:8000/control-iot/`. Todas las rutas del proyecto son relativas, por lo que funcionan igual en la raíz y en la subruta.
+
 ### Opción 3: Extensión de Editor
-- Si utilizas Visual Studio Code, haz clic derecho sobre `index.html` y selecciona **"Open with Live Server"**.
+- En Visual Studio Code, clic derecho sobre `index.html` → **"Open with Live Server"**.
+
+---
+
+## ➕ Cómo agregar una página nueva
+
+Ejemplo: `monitoreo.html`.
+
+1. **HTML:** copia `eventos.html` como plantilla a la raíz (`control-iot/monitoreo.html`). Conserva los `<link>` de favicon, `tokens.css`, `base.css` y `components.css`, el `<nav class="app-nav" data-nav>` de la barra superior y el `<footer class="app-credits" id="app-credits">` al final del `<main>`.
+2. **CSS:** crea `assets/css/monitoreo.css` con la maquetación propia de la página y enlázalo.
+3. **JS:** crea `assets/js/monitoreo/main.js` y cárgalo con `<script type="module" src="assets/js/monitoreo/main.js">` (más `assets/js/core/tema.js` para el tema). Dentro:
+   ```javascript
+   import { montarNavegacion, montarCreditos } from '../core/layout.js';
+   montarNavegacion(document.querySelector('[data-nav]'), 'monitoreo');
+   montarCreditos(document.getElementById('app-credits'));
+   ```
+4. **Navegación:** agrega la entrada en `PAGINAS` de `assets/js/core/config.js`:
+   ```javascript
+   Object.freeze({ id: 'monitoreo', href: 'monitoreo.html', etiqueta: 'Monitoreo', icono: 'monitoreo' })
+   ```
+   El enlace aparece automáticamente en las demás páginas (`core/layout.js` ya incluye iconos para `monitoreo` y `administracion`).
+5. Usa siempre **rutas relativas** (`assets/...`, `../core/...`), nunca rutas que empiecen con `/`.
+
+---
+
+## 🚀 Despliegue en GitHub Pages (mayúsculas y rutas)
+
+- GitHub Pages **distingue mayúsculas y minúsculas**; Windows no. Un `import './Config.js'` funciona en local pero da **404** publicado si el archivo es `config.js`. Todos los nombres de archivo y carpeta del proyecto están en minúsculas: mantén esa convención.
+- Al renombrar solo mayúsculas en Windows usa `git mv viejo.js temporal.js && git mv temporal.js nuevo.js`, porque Git no siempre detecta el cambio.
+- No uses rutas absolutas (`/assets/...`): en Pages apuntarían a `https://<usuario>.github.io/assets/...` en lugar de `.../control-iot/assets/...`.
 
 ---
 
@@ -265,7 +329,7 @@ npx http-server -p 8000
 
 - **Contenedores y Consultas de Tamaño (`Container Queries`):** Los joysticks y paneles se redimensionan proporcionalmente al espacio del que disponen, garantizando máxima visibilidad en pantallas reducidas.
 - **Navegación por Teclado:** Los joysticks disponen de `tabindex="0"` y responden a las teclas direccionales cuando están enfocados.
-- **Regiones Vivas ARIA:** El registro de acciones (`#action-messages`) y eventos (`#event-log`) cuenta con atributos `aria-live="polite"` para compatibilidad con lectores de pantalla.
+- **Regiones Vivas ARIA:** La última acción del control (`#action-messages`, `role="status"`) y la lista de `eventos.html` usan `aria-live="polite"` para compatibilidad con lectores de pantalla.
 - **Detección de Movimiento Reducido:** Estilos adaptados automáticamente ante la preferencia del sistema operativo `@media (prefers-reduced-motion: reduce)`.
 
 ---
@@ -274,5 +338,7 @@ npx http-server -p 8000
 
 - **Proyecto:** Carrito Jesus · Control de Vehículo IoT
 - **Materia:** Internet de las Cosas (IoT) — 9no Semestre
-- **Autor:** [80chucho08](https://github.com/80chucho08)
+- **Autor:** Navarro Carbajal Jesus Alfonso ([80chucho08](https://github.com/80chucho08))
+- **Matrícula:** 22200964
 - **Año:** 2026
+- **Tipografía:** [Inter](https://rsms.me/inter/) de Rasmus Andersson, licencia SIL Open Font License 1.1.

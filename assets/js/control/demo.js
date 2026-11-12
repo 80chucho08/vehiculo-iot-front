@@ -1,6 +1,6 @@
-import { HTTP_METHODS, ROUTES, DEMO_TIMEOUT_MS } from './config.js';
-import { request } from './api.js';
-import { getState, updateState } from './state.js';
+import { HTTP_METHODS, ROUTES, DEMO_TIMEOUT_MS } from '../core/config.js';
+import { request } from '../core/api.js';
+import { getState, updateState } from '../core/state.js';
 import { detener, isMovementInFlight, isSustainedMovementActive } from './commands.js';
 
 let onAction = () => {};

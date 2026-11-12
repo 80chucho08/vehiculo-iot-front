@@ -1,4 +1,4 @@
-import { JOYSTICK_AXIS_HYSTERESIS } from './config.js';
+import { JOYSTICK_AXIS_HYSTERESIS } from '../core/config.js';
 
 // El unico estado compartido es el propietario del gesto para excluir los controles.
 let owner = null;

@@ -1,6 +1,6 @@
-import { HTTP_METHODS, ROUTES, STOP_REQUEST_TIMEOUT_MS, TOGGLE_INTERRUPTS_MOVEMENT } from './config.js';
-import { request } from './api.js';
-import { getState } from './state.js';
+import { HTTP_METHODS, ROUTES, STOP_REQUEST_TIMEOUT_MS, TOGGLE_INTERRUPTS_MOVEMENT } from '../core/config.js';
+import { request } from '../core/api.js';
+import { getState } from '../core/state.js';
 import { GRUPOS } from '../data/grupos.js';
 
 const pending = new Map();

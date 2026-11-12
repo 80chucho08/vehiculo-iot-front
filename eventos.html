@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es" data-tema="ambar">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Carrito Jesus · registro de eventos WebSocket del vehículo IoT">
+  <title>Carrito Jesus · Eventos</title>
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/eventos.css">
+  <script type="module" src="assets/js/core/tema.js"></script>
+  <script type="module" src="assets/js/eventos/main.js"></script>
+</head>
+<body>
+  <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><symbol id="logo-marca" viewBox="0 0 48 48"><rect x="2" y="2" width="44" height="44" rx="13" fill="currentColor"/><text x="24" y="32" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="21" font-weight="800" fill="#10151b">CJ</text></symbol></svg>
+  <main class="eventos-app">
+    <header class="app-header glass">
+      <div class="brand"><svg class="brand-logo" role="img" aria-label="Carrito Jesus"><use href="#logo-marca"/></svg><div><h1 id="app-name">Registro de eventos</h1><p id="vehicle-name">Vehículo sin identificar</p></div></div>
+      <section class="health" aria-label="Estado de la conexión">
+        <article class="status-card" data-estado="cargando" id="ws-status"><span class="status-icon" aria-hidden="true">⌁</span><div><h2>WebSocket WSS · solo lectura</h2><p>Conectando</p></div><span class="status-pulse" aria-hidden="true"></span></article>
+      </section>
+      <div class="header-actions"><nav class="app-nav" data-nav aria-label="Secciones"><a class="nav-link" href="index.html" aria-label="Control" title="Control">Control</a></nav></div>
+    </header>
+
+    <p class="eventos-aviso glass" role="note">Muestra los eventos recibidos desde que se abrió esta página; un evento WebSocket confirma publicación del backend, no ejecución física.</p>
+
+    <section class="eventos-panel glass" aria-labelledby="eventos-titulo">
+      <div class="eventos-toolbar">
+        <h2 id="eventos-titulo">Eventos recibidos <span class="eventos-contador" id="eventos-contador">0</span></h2>
+        <p class="eventos-pausa" id="eventos-pausa" role="status" hidden></p>
+        <div class="eventos-acciones">
+          <button class="btn-tool" id="eventos-pausar" type="button" aria-pressed="false">Pausar</button>
+          <button class="btn-tool" id="eventos-limpiar" type="button">Limpiar</button>
+        </div>
+      </div>
+      <p class="eventos-vacio" id="eventos-vacio">Aún no se han recibido eventos.</p>
+      <ol class="eventos-lista" id="eventos-lista" aria-live="polite" aria-relevant="additions"></ol>
+    </section>
+
+    <footer class="app-credits" id="app-credits"></footer>
+  </main>
+</body>
+</html>

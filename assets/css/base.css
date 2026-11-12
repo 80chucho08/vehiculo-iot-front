@@ -1,0 +1,43 @@
+/* Estilos compartidos por todas las páginas: reset, barra superior, estado de servicios, navegación y créditos. */
+*{box-sizing:border-box}
+body{margin:0;color:var(--text);background:var(--page);font:var(--font-size-base)/1.25 var(--font-body)}
+button,select{font:inherit;color:inherit}
+button,select,[role=application]{touch-action:manipulation}
+button:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.svg-defs{position:absolute;width:0;height:0;overflow:hidden}
+.glass{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-card);box-shadow:var(--shadow-card),var(--shadow-inset);backdrop-filter:blur(var(--blur));-webkit-backdrop-filter:blur(var(--blur))}
+
+/* Barra superior */
+.app-header{position:relative;display:grid;gap:6px;padding:7px 9px;align-items:center}
+.brand{grid-area:brand;display:flex;align-items:center;gap:8px;min-width:0}
+.brand-logo{width:35px;height:35px;flex:none;color:var(--accent)}
+.brand h1{margin:0;font-size:clamp(15px,2vmin,23px);line-height:1.1}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:11px;overflow-wrap:anywhere}
+.header-actions{grid-area:actions;display:flex;align-items:center;gap:5px}
+.header-actions button,.nav-link,.info-button{display:grid;place-items:center;min-width:36px;min-height:36px;padding:4px;border:1px solid var(--border);border-radius:9px;background:var(--surface-raised);color:var(--text);cursor:pointer}
+
+/* Navegación entre páginas (componente reutilizable, ver core/layout.js) */
+.app-nav{display:contents}
+.nav-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;font-weight:700}
+.nav-link:hover{border-color:var(--accent)}
+.nav-link[aria-current=page]{border-color:var(--accent);color:var(--accent)}
+.nav-label{font-size:13px}
+.icono{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Tarjetas de estado de servicios */
+.health{grid-area:health;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;min-width:0}
+.status-card{min-width:0;min-height:39px;display:flex;align-items:center;gap:5px;padding:5px 7px;border:1px solid var(--border);border-radius:9px;background:rgba(255,255,255,.035)}
+.status-icon{flex:none;color:var(--accent);font-size:16px}
+.status-card>div{flex:1;min-width:0}
+.status-card h2{margin:0;font-size:clamp(9px,1.05vmin,12px);font-weight:700;overflow-wrap:anywhere}
+.status-card p{margin:1px 0 0;color:var(--muted);font-size:10px;overflow-wrap:anywhere}
+.status-pulse{width:7px;height:7px;flex:none;border-radius:50%;background:var(--loading);animation:pulse 2s ease-in-out infinite}
+.status-card[data-estado=ok] .status-pulse{background:var(--ok)}
+.status-card[data-estado=error] .status-pulse{background:var(--error)}
+.info-button{min-width:22px;min-height:22px;width:22px;height:22px;border-radius:50%;font-weight:800}
+
+/* Créditos: al final del contenido, dentro de la cuadrícula de cada página */
+.app-credits{min-width:0;min-height:0;padding:3px 0;text-align:center;color:var(--muted);font-size:11px}
+
+@keyframes pulse{50%{opacity:.45;transform:scale(.8)}}
+@keyframes fade-toast{0%,85%{opacity:1}100%{opacity:0;visibility:hidden}}

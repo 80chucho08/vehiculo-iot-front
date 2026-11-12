@@ -1,0 +1,34 @@
+/* Página de EVENTOS (eventos.html): documento con desplazamiento normal. */
+.eventos-app{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:'topbar' 'aviso' 'panel' 'creditos';gap:clamp(8px,1.4vmin,14px);width:100%;max-width:980px;min-height:100dvh;margin:0 auto;padding:max(10px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));grid-template-rows:auto auto 1fr auto}
+.eventos-app>*{min-width:0}
+.eventos-app .app-header{grid-area:topbar;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'brand actions' 'health health'}
+.eventos-app .health{grid-template-columns:minmax(0,1fr)}
+.eventos-app .nav-link{padding:4px 12px}
+.eventos-app .app-credits{grid-area:creditos;padding:8px 0}
+
+.eventos-aviso{grid-area:aviso;margin:0;padding:10px 14px;color:var(--muted);font-size:13px;line-height:1.4;border-left:3px solid var(--accent)}
+
+.eventos-panel{grid-area:panel;display:flex;flex-direction:column;min-height:240px;padding:12px 14px}
+.eventos-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.eventos-toolbar h2{display:flex;align-items:center;gap:8px;margin:0;font-size:15px}
+.eventos-contador{min-width:28px;padding:1px 8px;border-radius:var(--radius-pill);background:var(--accent-soft);color:var(--text);font-size:12px;text-align:center;font-variant-numeric:tabular-nums}
+.eventos-pausa{margin:0;color:var(--loading);font-size:12px;font-weight:700}
+.eventos-pausa[hidden]{display:none}
+.eventos-acciones{display:flex;gap:6px;margin-left:auto}
+.btn-tool{min-height:40px;padding:6px 14px;border:1px solid var(--border-bright);border-radius:9px;background:var(--surface-raised);font-weight:700}
+.btn-tool[aria-pressed=true]{border-color:var(--loading);color:var(--loading)}
+
+.eventos-vacio{margin:24px 0;color:var(--muted);text-align:center}
+.eventos-vacio[hidden]{display:none}
+.eventos-lista{margin:0;padding:0;list-style:none}
+.evento{padding:10px 2px;border-bottom:1px solid var(--border)}
+.evento:last-child{border-bottom:0}
+.evento-cabecera{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.evento-cabecera time{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.evento-tipo{color:var(--accent);font-size:13px;overflow-wrap:anywhere}
+.evento[data-desconocido=true] .evento-tipo{color:var(--loading)}
+.evento-json{max-height:260px;margin:6px 0 0;padding:8px 10px;overflow:auto;border-radius:8px;background:rgba(0,0,0,.28);color:var(--muted);font:12px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+
+@media(min-width:701px){
+  .eventos-app .app-header{grid-template-columns:minmax(160px,1fr) minmax(0,1.4fr) auto;grid-template-areas:'brand health actions'}
+}

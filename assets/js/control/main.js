@@ -1,11 +1,12 @@
-﻿import { ROUTES, HTTP_METHODS, VEHICLE_ID, APP_NAME, AUTOR_NOMBRE, ANIO } from './config.js';
-import { request } from './api.js';
-import { startHealthChecks } from './health.js';
-import { createWebSocket } from './ws.js';
-import { byId, setStatusCard, createActionLogger, logEvent, setVehicleName, setBackendConnectivity, renderCommands, renderDemos, setCommandButtonsState } from './ui.js';
+import { ROUTES, HTTP_METHODS, APP_NAME } from '../core/config.js';
+import { request } from '../core/api.js';
+import { startHealthChecks } from '../core/health.js';
+import { createWebSocket } from '../core/ws.js';
+import { getState, updateState, subscribe } from '../core/state.js';
+import { montarNavegacion, montarCreditos } from '../core/layout.js';
+import { byId, setStatusCard, createActionLogger, setVehicleName, setBackendConnectivity, renderCommands, renderDemos, setCommandButtonsState, initControlChrome } from './ui.js';
 import { configureCommands, enviarComando, detener, isMovementInFlight, isSustainedMovementActive, getActiveCommand } from './commands.js';
 import { configureDemos, loadDemos, iniciarDemo, cancelarDemo, completarDemo, avisarDemoEstadoDesconocido } from './demo.js';
-import { getState, updateState, subscribe } from './state.js';
 import { setupJoystick } from './joystick.js';
 import { JOYSTICK_GRUA, JOYSTICK_GARRA } from '../data/joystick-map.js';
 
@@ -15,16 +16,18 @@ if (['localhost', '127.0.0.1', '::1'].includes(location.hostname)) {
   });
 }
 
-byId('current-year').textContent = String(ANIO);
-byId('author-name').textContent = AUTOR_NOMBRE;
+montarNavegacion(document.querySelector('[data-nav]'), 'control');
+montarCreditos(byId('app-credits'));
+initControlChrome();
 document.title = `${APP_NAME} · Control IoT`;
 byId('app-name').textContent = APP_NAME;
 document.querySelector('.brand-logo').setAttribute('aria-label', APP_NAME);
 byId('joystick-grua').setAttribute('aria-label', `${APP_NAME}: joystick de grúa`);
 byId('joystick-garra').setAttribute('aria-label', `${APP_NAME}: joystick de garra`);
 byId('stop-button').setAttribute('aria-label', `${APP_NAME}: detener`);
+const noop = () => {};
 const writeAction = createActionLogger();
-const logAction = (...args) => { writeAction(...args); logEvent({ tipo: 'Acción', hora: new Date().toISOString(), mensaje: args[0], estado: args[1] || 'ok' }); setCommandButtonsState({ sending: isMovementInFlight(), demoRunning: getState().demoRunning || getState().demoStarting, activeCode: getActiveCommand() }); };
+const logAction = (...args) => { writeAction(...args); setCommandButtonsState({ sending: isMovementInFlight(), demoRunning: getState().demoRunning || getState().demoStarting, activeCode: getActiveCommand() }); };
 configureCommands(
   logAction,
   () => setCommandButtonsState({ sending: isMovementInFlight(), demoRunning: getState().demoRunning || getState().demoStarting, activeCode: getActiveCommand() }),
@@ -32,7 +35,8 @@ configureCommands(
 ); configureDemos(logAction);
 const context = {
   setStatus: (status, state) => { setStatusCard('ws-status', null, status, state); const online = status === 'En linea'; if (online && !wsAvailable && !catalogLoaded) { catalogRetryDelay = 1000; void loadCatalogs(); } wsAvailable = online; },
-  setVehicleName, setBackendConnectivity, logAction, logEvent, logUnknownEvent: logEvent,
+  // El registro completo de eventos se muestra en eventos.html; aquí se descartan.
+  setVehicleName, setBackendConnectivity, logAction, logEvent: noop, logUnknownEvent: noop,
   notifyDemoStateUnknown: avisarDemoEstadoDesconocido,
   demoCompleted: completarDemo
 };
@@ -75,7 +79,7 @@ async function loadCatalogs() {
     updateState({ commands: Array.isArray(result.comandos) ? result.comandos : [] });
     renderCommands((code) => enviarComando(code, 'boton'));
     commandsOK = getState().commands.length > 0;
-  } catch (error) { logAction(`No se pudo cargar el catÃ¡logo de comandos: ${error.message}`, 'error'); }
+  } catch (error) { logAction(`No se pudo cargar el catálogo de comandos: ${error.message}`, 'error'); }
   try {
     renderDemos(await loadDemos());
     demosOK = true;
@@ -96,7 +100,7 @@ const getCommandCatalog = () => getState().commands;
 setupJoystick(byId('joystick-grua'), byId('joystick-grua-knob'), joystickCommands, getCommandCatalog, JOYSTICK_GRUA);
 setupJoystick(byId('joystick-garra'), byId('joystick-garra-knob'), joystickCommands, getCommandCatalog, JOYSTICK_GARRA);
 
-byId('stop-button').addEventListener('click', () => detener('botÃ³n DETENER'));
+byId('stop-button').addEventListener('click', () => detener('botón DETENER'));
 byId('demo-start').addEventListener('click', async () => {
   const id = byId('demo-select').value; if (!id) { logAction('Selecciona una demo disponible.', 'error'); return; }
   await iniciarDemo(id);
@@ -112,5 +116,5 @@ subscribe((state) => {
 });
 byId('demo-select').addEventListener('change', () => { byId('demo-start').disabled = getState().demoRunning || getState().demoStarting || !byId('demo-select').value; });
 
-// Rutas/mÃ©todos centrales en config.js; las constantes mantienen visibles los puntos por confirmar.
+// Rutas/métodos centrales en config.js; las constantes mantienen visibles los puntos por confirmar.
 void HTTP_METHODS;

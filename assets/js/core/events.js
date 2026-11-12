@@ -1,6 +1,6 @@
 import { VEHICLE_ID } from './config.js';
 import { updateState } from './state.js';
-import { consumirSolicitud } from './commands.js';
+import { consumirSolicitud } from '../control/commands.js';
 
 const handlers = Object.create(null);
 
