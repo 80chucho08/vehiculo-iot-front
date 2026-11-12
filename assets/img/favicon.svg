@@ -1,7 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Favicon provisional: monograma CJ. Se reemplazará por el logo final. -->
-  <rect width="64" height="64" rx="15" fill="#1d232a"/>
-  <rect x="3" y="3" width="58" height="58" rx="12.5" fill="none" stroke="#ffb52e" stroke-opacity=".35" stroke-width="2"/>
-  <text x="32" y="42.5" text-anchor="middle" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="29" font-weight="800" letter-spacing="-1" fill="#f4f6f7">C<tspan fill="#ffb52e">J</tspan></text>
-  <rect x="17" y="49" width="30" height="3.5" rx="1.75" fill="#ffb52e"/>
+  <!-- Favicon provisional: monograma CJ (antracita + azul hielo). Se reemplazará por el logo final. -->
+  <defs>
+    <linearGradient id="f" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2C303B"/><stop offset="1" stop-color="#1E2028"/></linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#f)"/>
+  <rect x="2.5" y="2.5" width="59" height="59" rx="14" fill="none" stroke="#5AC8FA" stroke-opacity=".45" stroke-width="1.5"/>
+  <text x="32" y="41" text-anchor="middle" font-family="Inter, 'SF Pro Display', 'Segoe UI', Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="-.5" fill="#ECEEF2">C<tspan fill="#5AC8FA">J</tspan></text>
+  <circle cx="32" cy="51.5" r="2.2" fill="#5AC8FA"/>
 </svg>

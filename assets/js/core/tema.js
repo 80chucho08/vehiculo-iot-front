@@ -5,9 +5,10 @@ const byId = (id) => document.getElementById(id);
 const get = (key, fallback) => { try { return localStorage.getItem(key) ?? fallback; } catch { return fallback; } };
 const put = (key, value) => { try { localStorage.setItem(key, value); } catch {} };
 
-const TEMAS = ['ambar', 'cian', 'neon'];
-const savedTheme = get('cabina-tema', 'ambar');
-root.dataset.tema = TEMAS.includes(savedTheme) ? savedTheme : 'ambar';
+const TEMAS = ['hielo', 'ambar', 'esmeralda'];
+const TEMA_POR_DEFECTO = 'hielo';
+const savedTheme = get('cabina-tema', TEMA_POR_DEFECTO);
+root.dataset.tema = TEMAS.includes(savedTheme) ? savedTheme : TEMA_POR_DEFECTO;
 
 const theme = byId('theme-select');
 if (theme) {

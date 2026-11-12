@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="es" data-tema="ambar">
+<html lang="es" data-tema="hielo">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Carrito Jesus · registro de eventos WebSocket del vehículo IoT">
   <title>Carrito Jesus · Eventos</title>
+  <meta name="theme-color" content="#1E2028">
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
@@ -16,25 +17,29 @@
   <script type="module" src="assets/js/eventos/main.js"></script>
 </head>
 <body>
-  <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><symbol id="logo-marca" viewBox="0 0 48 48"><rect x="2" y="2" width="44" height="44" rx="13" fill="currentColor"/><text x="24" y="32" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="21" font-weight="800" fill="#10151b">CJ</text></symbol></svg>
+  <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="logo-marca" viewBox="0 0 48 48"><rect x="2" y="2" width="44" height="44" rx="14" fill="currentColor"/><text class="logo-texto" x="24" y="31.5" text-anchor="middle" font-size="19">CJ</text></symbol>
+    <symbol id="i-wss" viewBox="0 0 24 24"><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 15.8a5 5 0 0 1 7 0"/><path d="M12 19.5h.01"/><path d="M2 9a14.5 14.5 0 0 1 20 0"/></symbol>
+    <symbol id="i-aviso" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
   <main class="eventos-app">
-    <header class="app-header glass">
+    <header class="app-header panel">
       <div class="brand"><svg class="brand-logo" role="img" aria-label="Carrito Jesus"><use href="#logo-marca"/></svg><div><h1 id="app-name">Registro de eventos</h1><p id="vehicle-name">Vehículo sin identificar</p></div></div>
       <section class="health" aria-label="Estado de la conexión">
-        <article class="status-card" data-estado="cargando" id="ws-status"><span class="status-icon" aria-hidden="true">⌁</span><div><h2>WebSocket WSS · solo lectura</h2><p>Conectando</p></div><span class="status-pulse" aria-hidden="true"></span></article>
+        <article class="status-card" data-estado="cargando" id="ws-status" title="WebSocket WSS · solo lectura"><span class="status-icon" aria-hidden="true"><svg class="icono"><use href="#i-wss"/></svg></span><div><h2>WebSocket · solo lectura</h2><p>Conectando</p></div><span class="status-pulse" aria-hidden="true"></span></article>
       </section>
       <div class="header-actions"><nav class="app-nav" data-nav aria-label="Secciones"><a class="nav-link" href="index.html" aria-label="Control" title="Control">Control</a></nav></div>
     </header>
 
-    <p class="eventos-aviso glass" role="note">Muestra los eventos recibidos desde que se abrió esta página; un evento WebSocket confirma publicación del backend, no ejecución física.</p>
+    <p class="eventos-aviso panel" role="note"><svg class="icono" aria-hidden="true"><use href="#i-aviso"/></svg><span>Muestra los eventos recibidos desde que se abrió esta página; un evento WebSocket confirma publicación del backend, no ejecución física.</span></p>
 
-    <section class="eventos-panel glass" aria-labelledby="eventos-titulo">
+    <section class="eventos-panel panel" aria-labelledby="eventos-titulo">
       <div class="eventos-toolbar">
         <h2 id="eventos-titulo">Eventos recibidos <span class="eventos-contador" id="eventos-contador">0</span></h2>
         <p class="eventos-pausa" id="eventos-pausa" role="status" hidden></p>
         <div class="eventos-acciones">
-          <button class="btn-tool" id="eventos-pausar" type="button" aria-pressed="false">Pausar</button>
-          <button class="btn-tool" id="eventos-limpiar" type="button">Limpiar</button>
+          <button class="tecla btn-tool" id="eventos-pausar" type="button" aria-pressed="false">Pausar</button>
+          <button class="tecla btn-tool" id="eventos-limpiar" type="button">Limpiar</button>
         </div>
       </div>
       <p class="eventos-vacio" id="eventos-vacio">Aún no se han recibido eventos.</p>

@@ -1,19 +1,133 @@
-/* Inter variable (SIL OFL 1.1, ver assets/fonts/OFL.txt). Ruta relativa a este archivo. */
+/* =====================================================================
+   Tokens de diseño · "Tesla Dark Neumorphism"
+   Todos los colores, sombras, radios, desenfoques, duraciones y tamaños.
+   Contrastes (WCAG) medidos sobre --superficie #252933:
+     --texto 12.5:1 · --texto-2 7.5:1 · acentos ≥ 7.5:1 · --error 5.2:1
+     --borde-control 3.4:1 (≥ 3:1 para contorno de controles)
+   ===================================================================== */
+
+/* Inter variable autohospedada (SIL OFL 1.1, ver assets/fonts/OFL.txt). */
 @font-face{font-family:Inter;font-style:normal;font-weight:100 900;font-display:swap;src:url("../fonts/inter-latin-wght-normal.woff2") format("woff2")}
-:root {
-  color-scheme: dark;
-  --page: #090d12; --surface: rgba(22, 29, 37, .92); --surface-raised: rgba(33, 42, 52, .94); --text: #f4f6f7; --muted: #b9c2ca;
-  --border: rgba(239, 246, 251, .2); --border-bright: rgba(255,255,255,.42); --ok: #65d99a; --error: #ff514a; --loading: #ffc65c;
-  --accent: #ffb52e; --accent-soft: #68420d; --accent-glow: rgba(255,181,46,.26); --focus: #fff; --stop: #e33832;
-  --space-0: 0px; --space-1: clamp(3px,.35vmin,6px); --space-2: clamp(6px,.7vmin,10px); --space-3: clamp(9px,1vmin,14px); --space-4: clamp(12px,1.5vmin,20px); --space-5: clamp(16px,2vmin,28px); --space-6: clamp(20px,2.5vmin,36px);
-  --radius-sm: 9px; --radius-card: clamp(14px,2vmin,22px); --radius-round: 50%; --radius-pill: 999px;
-  --blur: 18px; --shadow-card: 0 12px 36px rgba(0,0,0,.32); --shadow-inset: inset 0 1px 0 rgba(255,255,255,.13); --shadow-accent: 0 0 26px var(--accent-glow);
-  --font-body: Inter, ui-sans-serif, system-ui, sans-serif; --font-size-base: clamp(12px,1.2vmin,16px); --font-small: clamp(10px,.95vmin,13px); --font-heading: clamp(18px,2.8vmin,31px); --font-section: clamp(11px,1.15vmin,15px); --font-action: clamp(16px,2vmin,24px);
-  --touch-size: 44px; --joystick-size: 100%; --joystick-knob-size: 25%; --joystick-knob-offset: 20%; --joystick-knob-far: 80%;
-  --border-width: 1px; --border-strong: 3px; --focus-width: 3px; --focus-offset: 3px; --blocked-opacity: .48;
-  --duration-fast: 120ms; --duration-mid: 240ms; --duration-drift: 22s; --pulse-duration: 2.2s; --size-marker: 4%; --size-marker-mid: 48%; --size-marker-side: 5%; --knob-line: 4px;
-  --duration-luz: 320ms; --duration-luz-brillo: 520ms; --duration-shimmer: 1.1s; --duration-demo-franja: 1.4s; --duration-demo-exito: 600ms; --duration-demo-cierre: 450ms; --warning: #ff8a3d;
+
+:root{
+  color-scheme:dark;
+
+  /* Fondo y superficies */
+  --fondo-1:#1E2028;
+  --fondo-2:#252933;
+  --fondo:linear-gradient(160deg,var(--fondo-1) 0%,var(--fondo-2) 55%,var(--fondo-1) 100%);
+  --superficie:#252933;
+  --superficie-alta:#2C303B;
+  --superficie-hundida:#1D2027;
+  --vidrio:rgba(37,41,51,.72);
+  --vidrio-solido:#2C303B;
+  --velo:rgba(10,12,16,.62);
+
+  /* Texto */
+  --texto:#ECEEF2;
+  --texto-2:#B4BAC6;
+  --texto-3:#9AA1AE;
+  --sobre-acento:#0E1726;
+  --sobre-rojo:#FFFFFF;
+
+  /* Bordes: decorativo (paneles) y de control (≥ 3:1) */
+  --borde:rgba(255,255,255,.07);
+  --borde-control:#737B89;
+  --borde-fuerte:#9AA3B2;
+
+  /* Acento personalizable (lo redefinen los temas) */
+  --acento:#5AC8FA;
+  --acento-rgb:90 200 250;
+  --acento-suave:rgb(var(--acento-rgb) / .14);
+  --acento-medio:rgb(var(--acento-rgb) / .38);
+  --acento-brillo:rgb(var(--acento-rgb) / .32);
+
+  /* Estados: verde / ámbar / rojo. El rojo es exclusivo de DETENER y errores. */
+  --ok:#4ADE80;   --ok-rgb:74 222 128;
+  --aviso:#FBBF24; --aviso-rgb:251 191 36;
+  --error:#FF6B6B; --error-rgb:255 107 107;
+  --rojo-1:#D33A3F; --rojo-2:#B52C31; --rojo-borde:#F08A8D;
+
+  /* Relieve neumórfico: luz arriba-izquierda, sombra abajo-derecha */
+  --luz-sombra:rgba(255,255,255,.045);
+  --oscura-sombra:rgba(0,0,0,.46);
+  --relieve:-6px -6px 14px var(--luz-sombra),8px 8px 20px var(--oscura-sombra);
+  --relieve-sm:-3px -3px 8px var(--luz-sombra),4px 4px 10px var(--oscura-sombra);
+  --relieve-xs:-2px -2px 5px var(--luz-sombra),2px 3px 6px var(--oscura-sombra);
+  --hundido:inset 4px 4px 10px rgba(0,0,0,.5),inset -3px -3px 8px rgba(255,255,255,.035);
+  --hundido-sm:inset 2px 2px 5px rgba(0,0,0,.5),inset -2px -2px 4px rgba(255,255,255,.03);
+  --sombra-flotante:0 18px 50px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.35);
+  --brillo-acento:0 0 18px var(--acento-brillo);
+
+  /* Radios */
+  --r-panel:clamp(20px,3.2vmin,32px);
+  --r-tarjeta:clamp(16px,2.4vmin,24px);
+  --r-control:clamp(12px,1.8vmin,16px);
+  --r-chico:10px;
+  --r-pill:999px;
+
+  /* Espaciado */
+  --esp-1:clamp(3px,.45vmin,6px);
+  --esp-2:clamp(5px,.8vmin,10px);
+  --esp-3:clamp(8px,1.2vmin,14px);
+  --esp-4:clamp(10px,1.6vmin,20px);
+  --esp-5:clamp(14px,2.2vmin,28px);
+
+  /* Tipografía */
+  --fuente:Inter,"SF Pro Display",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --fuente-mono:ui-monospace,"SF Mono",SFMono-Regular,Consolas,monospace;
+  --t-micro:clamp(11px,.6vmin + 7px,12px);
+  --t-chico:clamp(11px,.7vmin + 8px,13px);
+  --t-base:clamp(13px,.8vmin + 9px,15px);
+  --t-medio:clamp(14px,1vmin + 9px,17px);
+  --t-titulo:clamp(16px,1.6vmin + 9px,22px);
+  --t-detener:clamp(16px,1.6vmin + 10px,22px);
+  --tracking-etiqueta:.12em;
+  --tracking-detener:.22em;
+
+  /* Tamaños */
+  --touch:44px;
+  --touch-lg:52px;
+  --icono:20px;
+  --icono-sm:16px;
+  --punto:8px;
+  --logo:clamp(32px,4vmin,40px);
+  --foco-ancho:2px;
+  --foco-separacion:2px;
+  --foco-color:#FFFFFF;
+  --opacidad-bloqueado:.45;
+
+  /* Vidrio */
+  --blur:20px;
+
+  /* Duraciones */
+  --duracion-rapida:120ms;
+  --duracion-media:220ms;
+  --duracion-pulso:2.2s;
+  --duracion-toast:6s;
+  --duration-luz:320ms;
+  --duration-luz-brillo:520ms;
+  --duration-shimmer:1.1s;
+  --duration-demo-franja:1.4s;
+  --duration-demo-exito:600ms;
+  --duration-demo-cierre:450ms;
+  --curva-suave:cubic-bezier(.2,.8,.2,1);
+  --curva-rebote:cubic-bezier(.3,1.4,.5,1);
 }
-:root[data-tema="ambar"] { --accent: #ffb52e; --accent-soft:#68420d; --accent-glow:rgba(255,181,46,.26); }
-:root[data-tema="cian"] { --accent: #43d8ef; --accent-soft:#104a55; --accent-glow:rgba(67,216,239,.25); }
-:root[data-tema="neon"] { --accent: #c6ff37; --accent-soft:#3d5011; --accent-glow:rgba(198,255,55,.24); }
+
+/* Temas: solo redefinen el acento */
+:root[data-tema="hielo"]{--acento:#5AC8FA;--acento-rgb:90 200 250}
+:root[data-tema="ambar"]{--acento:#FFB340;--acento-rgb:255 179 64}
+:root[data-tema="esmeralda"]{--acento:#34D399;--acento-rgb:52 211 153}
+
+/* Más contraste: bordes y texto secundario más fuertes, relieve atenuado */
+@media (prefers-contrast:more){
+  :root{
+    --texto-2:#D5D9E0;
+    --texto-3:#C3C8D1;
+    --borde:rgba(255,255,255,.28);
+    --borde-control:#B4BAC6;
+    --luz-sombra:rgba(255,255,255,0);
+    --acento-suave:rgb(var(--acento-rgb) / .22);
+  }
+}

@@ -1,10 +1,32 @@
-/* Componentes genéricos: botones, hojas modales y movimiento reducido. */
-button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.55}.command-button[data-accion="enviando"]{animation:pulse 1s infinite}.command-button[data-accion="presionado"]{border-color:var(--accent);box-shadow:var(--shadow-accent)}.system-commands:empty{display:none}:root[data-efectos="reducidos"] *, :root[data-efectos="reducidos"] *::before,:root[data-efectos="reducidos"] *::after{animation:none!important;transition:none!important}@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
-.sheet{width:min(92vw,480px);max-height:85dvh;overflow:auto;padding:18px;color:var(--text);background:#171e26;border:1px solid var(--border-bright);border-radius:16px;box-shadow:var(--shadow-card)}
-.sheet::backdrop{background:#000a;backdrop-filter:blur(3px)}
-.sheet h2{margin:0 48px 12px 0}
-.sheet label{display:block;margin:8px 0;color:var(--muted)}
-.sheet select{width:100%;min-height:40px;background:var(--surface-raised);border:1px solid var(--border);border-radius:8px}
-.sheet>button:not(.sheet-close),.sheet-actions button,.utility-button{min-height:42px;margin:4px;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface-raised)}
-.sheet-close{float:right;min-width:38px;min-height:38px;border:1px solid var(--border);border-radius:50%;background:transparent;color:var(--text);font-size:22px}
-.sheet-actions{display:flex;gap:8px}
+/* Componentes genéricos: teclas, campos, hojas de vidrio y movimiento reducido. */
+button{cursor:pointer}
+button:disabled{cursor:not-allowed}
+
+/* Tecla neumórfica: relieve en reposo, hundida al presionar */
+.tecla,.sheet-actions button,.utility-button,.demo-controls button,.catalog-status button{display:inline-flex;align-items:center;justify-content:center;gap:var(--esp-2);min-height:var(--touch);padding:0 var(--esp-4);border:1px solid var(--borde-control);border-radius:var(--r-control);background:var(--superficie);color:var(--texto);box-shadow:var(--relieve-sm);font-weight:600;transition:box-shadow var(--duracion-rapida) ease,transform var(--duracion-rapida) ease,border-color var(--duracion-rapida) ease}
+.tecla:active:not(:disabled),.sheet-actions button:active,.utility-button:active,.demo-controls button:active:not(:disabled),.catalog-status button:active{box-shadow:var(--hundido-sm);transform:translateY(1px)}
+.utility-button[aria-pressed=true]{border-color:var(--acento);color:var(--acento);box-shadow:var(--hundido-sm)}
+.tecla-acento,.btn-primary,#demo-sheet-start{border-color:var(--acento);background:var(--acento);color:var(--sobre-acento);box-shadow:var(--relieve-sm),var(--brillo-acento)}
+button:disabled.tecla,button:disabled.btn-primary,.demo-controls button:disabled{opacity:var(--opacidad-bloqueado);box-shadow:var(--hundido-sm);background:var(--superficie-hundida);color:var(--texto-2);border-color:var(--borde-control)}
+
+/* Campos: hundidos */
+select{min-height:var(--touch);padding:0 36px 0 var(--esp-3);border:1px solid var(--borde-control);border-radius:var(--r-control);background:var(--superficie-hundida) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B4BAC6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center/16px;box-shadow:var(--hundido-sm);color:var(--texto);-webkit-appearance:none;appearance:none}
+select:disabled{color:var(--texto-2);opacity:.8}
+option{background:var(--superficie-alta);color:var(--texto)}
+
+/* Hojas (Ajustes, DEMO): vidrio flotante */
+.sheet{width:min(92vw,460px);max-height:85dvh;overflow:auto;padding:var(--esp-5);border-radius:var(--r-panel);color:var(--texto)}
+.sheet:not(.vidrio){background:var(--vidrio-solido)}
+.sheet::backdrop{background:var(--velo);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.sheet h2{margin:0 56px var(--esp-4) 0;font-size:var(--t-titulo);font-weight:700}
+.sheet label{display:grid;gap:6px;margin:var(--esp-3) 0;color:var(--texto-2);font-size:var(--t-micro);font-weight:600;letter-spacing:var(--tracking-etiqueta);text-transform:uppercase}
+.sheet select{width:100%;text-transform:none;letter-spacing:0;font-size:var(--t-base);font-weight:500}
+.sheet .utility-button{width:100%;justify-content:flex-start;margin:var(--esp-2) 0}
+.sheet-close{float:right;display:grid;place-items:center;width:var(--touch);height:var(--touch);padding:0;border:1px solid var(--borde-control);border-radius:50%;background:var(--superficie);box-shadow:var(--relieve-xs);color:var(--texto)}
+.sheet-close .icono{width:18px;height:18px}
+.sheet-actions{display:flex;gap:var(--esp-3);margin-top:var(--esp-4)}
+.sheet-actions button{flex:1}
+
+/* Efectos reducidos (ajuste del usuario) y preferencia del sistema */
+:root[data-efectos="reducidos"] *,:root[data-efectos="reducidos"] *::before,:root[data-efectos="reducidos"] *::after{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
