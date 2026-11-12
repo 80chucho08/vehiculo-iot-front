@@ -23,7 +23,8 @@ export function setBackendConnectivity(value) {
   node.dataset.estado = value ? 'ok' : 'error';
 }
 
-export function renderCommands(onClick, stopCommand = () => {}) {
+// especiales: { [codigo]: (command, onClick) => HTMLElement } para controles con presentación propia (p. ej. la luz).
+export function renderCommands(onClick, stopCommand = () => {}, especiales = {}) {
   const root = byId('command-groups'); root.replaceChildren();
   const commands = getState().commands;
   if (!commands.length) {
@@ -37,6 +38,8 @@ export function renderCommands(onClick, stopCommand = () => {}) {
     const heading = document.createElement('h3'); heading.textContent = group.nombre;
     const buttons = document.createElement('div'); buttons.className = 'command-buttons';
     for (const command of commands.filter((item) => group.codigos.includes(Number(item.codigo)) && Number(item.codigo) !== 13)) {
+      const especial = especiales[Number(command.codigo)];
+      if (especial) { buttons.append(especial(command, onClick)); continue; }
       const button = document.createElement('button');
       button.type = 'button'; button.className = 'command-button';
       button.dataset.commandCode = command.codigo; button.dataset.tipo = group.tipo;
@@ -83,6 +86,11 @@ export function renderDemos(demos) {
 
 export function setCommandButtonsState({ sending = false, demoRunning = false, activeCode = null } = {}) {
   document.querySelectorAll('.command-button').forEach((button) => {
+    if (button.classList.contains('luz-switch')) {
+      // El interruptor de luz gestiona su propio data-estado y aria-pressed (ver luz.js).
+      button.disabled = demoRunning || button.dataset.estadoOriginal === 'error';
+      return;
+    }
     const selected = Number(button.dataset.commandCode) === Number(activeCode);
     button.disabled = demoRunning || button.dataset.estadoOriginal === 'error';
     button.dataset.accion = button.disabled ? 'deshabilitado' : (selected ? 'presionado' : (sending ? 'enviando' : 'normal'));

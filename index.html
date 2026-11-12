@@ -34,6 +34,15 @@
       <article class="joystick-panel glass"><div class="joystick-content"><p id="joystick-garra-notice" class="joystick-notice"></p><div class="joystick-control joystick-garra" id="joystick-garra" role="application" tabindex="0" aria-label="Carrito Jesus: joystick de garra" data-estado="ok"><span class="joystick-direction direction-up">↑</span><span class="joystick-direction direction-right">→</span><span class="joystick-direction direction-down">↓</span><span class="joystick-direction direction-left">←</span><span class="joystick-knob joystick-garra-knob" id="joystick-garra-knob" data-direction="centro" aria-hidden="true"></span></div><h2>GARRA</h2><p class="axis-label">ABRIR · CERRAR</p></div></article>
     </section>
     <section class="command-deck glass"><div class="action-area"><span class="eyebrow">ESTADO DE CABINA</span><div id="action-messages" class="action-messages" role="status" aria-live="polite" aria-atomic="true" data-estado="ok"><p data-estado="ok">Cabina lista</p></div></div>
+      <section id="demo-card" class="demo-card" data-estado="iniciando" aria-labelledby="demo-card-titulo" hidden>
+        <div class="demo-card-cabecera">
+          <span class="demo-card-icono" id="demo-card-icono" aria-hidden="true"></span>
+          <div class="demo-card-textos"><h2 id="demo-card-titulo" aria-live="polite">Iniciando demo</h2><p id="demo-card-nombre" class="demo-card-nombre"></p></div>
+          <span class="demo-card-tiempo"><span class="sr-only">Tiempo transcurrido </span><time id="demo-card-tiempo">00:00</time></span>
+        </div>
+        <div id="demo-card-barra" class="demo-barra" role="progressbar" aria-labelledby="demo-card-titulo" aria-valuemin="0" aria-valuemax="100" aria-valuetext="En curso"><span class="demo-barra-relleno"></span></div>
+        <div class="demo-card-pie"><p id="demo-card-detalle" class="demo-card-detalle" role="status"></p><button id="demo-card-cancelar" class="demo-card-cancelar" type="button">Cancelar demo</button></div>
+      </section>
       <button class="demo-open" id="demo-open" type="button">DEMO</button>
       <section class="demo-inline" aria-label="Demostración"><label for="demo-select">RUTINA DEMO</label><div class="demo-controls"><select id="demo-select" disabled><option value="">Cargando demos…</option></select><button class="btn btn-primary" id="demo-start" type="button" disabled>Ejecutar</button><button class="btn btn-secondary" id="demo-cancel" type="button" disabled>Cancelar</button></div></section>
       <div id="catalog-status" class="catalog-status" role="status" hidden>Catálogo no disponible <button id="catalog-retry" type="button">Reintentar</button></div>

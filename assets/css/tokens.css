@@ -12,6 +12,7 @@
   --touch-size: 44px; --joystick-size: 100%; --joystick-knob-size: 25%; --joystick-knob-offset: 20%; --joystick-knob-far: 80%;
   --border-width: 1px; --border-strong: 3px; --focus-width: 3px; --focus-offset: 3px; --blocked-opacity: .48;
   --duration-fast: 120ms; --duration-mid: 240ms; --duration-drift: 22s; --pulse-duration: 2.2s; --size-marker: 4%; --size-marker-mid: 48%; --size-marker-side: 5%; --knob-line: 4px;
+  --duration-luz: 320ms; --duration-luz-brillo: 520ms; --duration-shimmer: 1.1s; --duration-demo-franja: 1.4s; --duration-demo-exito: 600ms; --duration-demo-cierre: 450ms; --warning: #ff8a3d;
 }
 :root[data-tema="ambar"] { --accent: #ffb52e; --accent-soft:#68420d; --accent-glow:rgba(255,181,46,.26); }
 :root[data-tema="cian"] { --accent: #43d8ef; --accent-soft:#104a55; --accent-glow:rgba(67,216,239,.25); }

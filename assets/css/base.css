@@ -41,3 +41,6 @@ button:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visib
 
 @keyframes pulse{50%{opacity:.45;transform:scale(.8)}}
 @keyframes fade-toast{0%,85%{opacity:1}100%{opacity:0;visibility:hidden}}
+
+/* Texto solo para lectores de pantalla */
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}

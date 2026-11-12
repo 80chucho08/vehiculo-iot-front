@@ -104,3 +104,85 @@ html,body{width:100%;height:100%;height:100dvh;min-width:0;min-height:0;overflow
   .command-button{min-height:42px}.command-deck{gap:4px;padding:6px}
   .demo-controls select,.demo-controls button{min-height:36px}
 }
+
+/* ===== Interruptor de luz (luz.js). Estado ESTIMADO: data-luz = encendida|apagada; data-estado añade enviando|error. ===== */
+.system-commands:has(.luz-switch){grid-template-columns:repeat(3,minmax(0,1fr))}
+.luz-switch{position:relative;grid-column:1/-1;order:-1;flex-direction:row;justify-content:flex-start;gap:8px;min-height:38px;padding:4px 10px;overflow:hidden;text-align:left}
+.luz-etiqueta{flex:1;min-width:0;font-size:12px;font-weight:700;line-height:1.15}
+.luz-estimado{color:var(--muted);font-weight:500}
+.luz-icono{width:22px;height:22px;flex:none;overflow:visible;color:var(--muted);transition:color var(--duration-luz) ease}
+.luz-bulbo{fill:transparent;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:fill var(--duration-luz) ease}
+.luz-brillo{fill:var(--accent-glow);transform-box:fill-box;transform-origin:center;transform:scale(.3);opacity:0;transition:opacity var(--duration-luz-brillo) ease,transform var(--duration-luz-brillo) ease}
+.luz-switch[data-luz=encendida] .luz-icono{color:var(--accent)}
+.luz-switch[data-luz=encendida] .luz-bulbo{fill:var(--accent-glow)}
+.luz-switch[data-luz=encendida] .luz-brillo{opacity:1;transform:scale(1.25);animation:luz-expande var(--duration-luz-brillo) ease-out}
+.luz-track{position:relative;width:36px;height:20px;flex:none;border:1px solid var(--border-bright);border-radius:var(--radius-pill);background:rgba(0,0,0,.3);transition:background var(--duration-luz) ease,border-color var(--duration-luz) ease}
+.luz-knob{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transform:translateX(0);transition:transform var(--duration-luz) cubic-bezier(.3,1.4,.5,1),background var(--duration-luz) ease}
+.luz-switch[data-luz=encendida] .luz-track{border-color:var(--accent);background:var(--accent-soft)}
+.luz-switch[data-luz=encendida] .luz-knob{transform:translateX(16px);background:var(--accent)}
+.luz-switch[data-estado=enviando]::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.13) 50%,transparent 70%);background-size:220% 100%;animation:shimmer var(--duration-shimmer) linear infinite;pointer-events:none}
+.luz-switch[data-estado=enviando] .luz-knob{animation:pulse var(--duration-shimmer) ease-in-out infinite}
+.luz-switch[data-estado=error]{border-color:var(--error)}
+.luz-switch[data-estado=error] .luz-estimado::after{content:" · sin confirmar";color:#ff8d87}
+@keyframes luz-expande{0%{opacity:0;transform:scale(.3)}60%{opacity:1;transform:scale(1.45)}100%{opacity:1;transform:scale(1.25)}}
+@keyframes shimmer{from{background-position:120% 0}to{background-position:-120% 0}}
+
+/* ===== Tarjeta de demo (demo-progreso.js). data-estado: iniciando|ejecutando|completada|cancelada|desconocida ===== */
+.command-deck[data-demo-activa] .demo-open,.command-deck[data-demo-activa] .demo-inline{display:none!important}
+.demo-card{display:grid;gap:6px;min-width:0;padding:8px 10px;border:1px solid var(--accent);border-radius:10px;background:rgba(255,255,255,.04)}
+.demo-card[hidden]{display:none}
+.demo-card-cabecera{display:flex;align-items:center;gap:8px;min-width:0}
+.demo-card-icono{display:grid;place-items:center;width:24px;height:24px;flex:none;border-radius:50%;background:var(--accent-soft);color:var(--accent)}
+.demo-card-icono svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.demo-card[data-estado=ejecutando] .demo-card-icono svg{fill:currentColor}
+.demo-card-textos{flex:1;min-width:0}
+.demo-card h2{margin:0;font-size:13px;line-height:1.2}
+.demo-card-nombre{margin:1px 0 0;overflow:hidden;color:var(--muted);font-size:11px;white-space:nowrap;text-overflow:ellipsis}
+.demo-card-tiempo{flex:none;color:var(--muted);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.demo-barra{position:relative;height:6px;overflow:hidden;border-radius:var(--radius-pill);background:rgba(255,255,255,.1)}
+.demo-barra-relleno{position:absolute;top:0;bottom:0;left:0;width:35%;border-radius:inherit;background:var(--accent);animation:franja var(--duration-demo-franja) ease-in-out infinite}
+.demo-barra[data-movimiento=determinado] .demo-barra-relleno{width:var(--progreso,0%);animation:none;transition:width var(--duration-luz) ease}
+.demo-card-pie{display:flex;align-items:center;gap:8px;min-width:0}
+.demo-card-detalle{flex:1;min-width:0;margin:0;color:var(--muted);font-size:11px;overflow-wrap:anywhere}
+.demo-card-cancelar{flex:none;min-height:38px;padding:4px 12px;border:2px solid var(--error);border-radius:9px;background:rgba(255,81,74,.2);color:var(--text);font-weight:800}
+.demo-card-cancelar[hidden]{display:none}
+/* Completada: llenado al 100 % y destello de éxito */
+.demo-card[data-estado=completada]{border-color:var(--ok)}
+.demo-card[data-estado=completada] .demo-card-icono{background:rgba(101,217,154,.18);color:var(--ok)}
+.demo-card[data-estado=completada] .demo-barra-relleno{width:100%;background:var(--ok);animation:llenar var(--duration-demo-exito) ease-out both}
+.demo-card[data-estado=completada] .demo-barra{animation:exito var(--duration-demo-exito) ease-out var(--duration-demo-exito) both}
+/* Cancelada: barra detenida y cierre con fundido */
+.demo-card[data-estado=cancelada]{border-color:var(--border-bright);animation:cierre var(--duration-demo-cierre) ease-in 1.5s both}
+.demo-card[data-estado=cancelada] .demo-card-icono{background:rgba(255,255,255,.08);color:var(--muted)}
+.demo-card[data-estado=cancelada] .demo-barra-relleno{width:100%;background:var(--muted);opacity:.45;animation:none}
+/* Desconocida: color de advertencia, barra rayada estática */
+.demo-card[data-estado=desconocida]{border-color:var(--warning)}
+.demo-card[data-estado=desconocida] h2,.demo-card[data-estado=desconocida] .demo-card-icono{color:var(--warning)}
+.demo-card[data-estado=desconocida] .demo-card-icono{background:rgba(255,138,61,.16)}
+.demo-card[data-estado=desconocida] .demo-barra-relleno{width:100%;animation:none;background:repeating-linear-gradient(45deg,var(--warning) 0 6px,transparent 6px 12px);opacity:.7}
+@keyframes franja{0%{transform:translateX(-100%)}100%{transform:translateX(290%)}}
+@keyframes llenar{from{width:35%}to{width:100%}}
+@keyframes exito{0%{box-shadow:0 0 0 0 rgba(101,217,154,.6)}100%{box-shadow:0 0 0 6px rgba(101,217,154,0)}}
+@keyframes cierre{to{opacity:.35;transform:scale(.97)}}
+
+/* Con demo activa los toggles y la luz están bloqueados: en pantallas de poca altura se ocultan para dejar sitio a la tarjeta */
+@media(max-height:700px){
+  .command-deck[data-demo-activa] .system-commands{display:none}
+}
+/* Pantallas bajas: compactar la tarjeta */
+@media(max-height:400px){
+  .demo-card{gap:3px;padding:4px 8px}
+  .demo-card-icono{width:20px;height:20px}
+  .demo-card-nombre{display:none}
+  .demo-card-cancelar{min-height:34px}
+  .luz-switch{min-height:34px}
+}
+
+/* Movimiento reducido: sin franja ni transiciones; barra estática con texto */
+@media(prefers-reduced-motion:reduce){
+  .luz-switch *,.luz-switch::after,.demo-card,.demo-card *{animation:none!important;transition:none!important}
+  .demo-barra-relleno{width:100%;opacity:.45}
+  .demo-card[data-estado=completada] .demo-barra-relleno{opacity:1}
+}
+:root[data-efectos=reducidos] .demo-barra-relleno{width:100%;opacity:.45}
+:root[data-efectos=reducidos] .demo-card[data-estado=completada] .demo-barra-relleno{opacity:1}

@@ -28,3 +28,7 @@ export const STOP_REQUEST_TIMEOUT_MS = 1800;
 export const JOYSTICK_AXIS_HYSTERESIS = 0.12;
 // En la prueba del usuario, los toggles interrumpen un comando sostenido.
 export const TOGGLE_INTERRUPTS_MOVEMENT = true;
+// Luz (código 8, toggle). El estado mostrado es una ESTIMACIÓN, nunca el estado físico confirmado.
+export const LUZ_CODIGO = 8;
+export const LUZ_ESTADO_INICIAL = true; // encendida al cargar la página y tras reiniciarse el firmware
+export const LUZ_CONFIRM_TIMEOUT_MS = 2000; // espera del evento WS antes de aceptar la confirmación HTTP

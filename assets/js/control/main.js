@@ -1,4 +1,4 @@
-import { ROUTES, HTTP_METHODS, APP_NAME } from '../core/config.js';
+import { ROUTES, HTTP_METHODS, APP_NAME, LUZ_CODIGO } from '../core/config.js';
 import { request } from '../core/api.js';
 import { startHealthChecks } from '../core/health.js';
 import { createWebSocket } from '../core/ws.js';
@@ -8,6 +8,8 @@ import { byId, setStatusCard, createActionLogger, setVehicleName, setBackendConn
 import { configureCommands, enviarComando, detener, isMovementInFlight, isSustainedMovementActive, getActiveCommand } from './commands.js';
 import { configureDemos, loadDemos, iniciarDemo, cancelarDemo, completarDemo, avisarDemoEstadoDesconocido } from './demo.js';
 import { setupJoystick } from './joystick.js';
+import { crearLuz } from './luz.js';
+import { crearDemoProgreso } from './demo-progreso.js';
 import { JOYSTICK_GRUA, JOYSTICK_GARRA } from '../data/joystick-map.js';
 
 if (['localhost', '127.0.0.1', '::1'].includes(location.hostname)) {
@@ -26,19 +28,23 @@ byId('joystick-grua').setAttribute('aria-label', `${APP_NAME}: joystick de grúa
 byId('joystick-garra').setAttribute('aria-label', `${APP_NAME}: joystick de garra`);
 byId('stop-button').setAttribute('aria-label', `${APP_NAME}: detener`);
 const noop = () => {};
+const getCommandCatalog = () => getState().commands;
+const luz = crearLuz({ isMovementInFlight, getCatalog: getCommandCatalog });
+const demoProgreso = crearDemoProgreso({ getState, subscribe, cancelar: cancelarDemo });
 const writeAction = createActionLogger();
-const logAction = (...args) => { writeAction(...args); setCommandButtonsState({ sending: isMovementInFlight(), demoRunning: getState().demoRunning || getState().demoStarting, activeCode: getActiveCommand() }); };
+const refreshButtons = () => setCommandButtonsState({ sending: isMovementInFlight(), demoRunning: getState().demoRunning || getState().demoStarting, activeCode: getActiveCommand() });
+const logAction = (...args) => { writeAction(...args); luz.alAccion(args[0], args[1]); demoProgreso.alAccion(args[0], args[1]); setCommandButtonsState({ sending: isMovementInFlight(), demoRunning: getState().demoRunning || getState().demoStarting, activeCode: getActiveCommand() }); };
 configureCommands(
   logAction,
-  () => setCommandButtonsState({ sending: isMovementInFlight(), demoRunning: getState().demoRunning || getState().demoStarting, activeCode: getActiveCommand() }),
-  (event, codigo) => logAction(`Evento recibido para el comando ${codigo}: ${event.comando || event.id_comando} completado (${event.estado || 'estado no indicado'}).`, 'ok', event.id_solicitud)
+  () => { refreshButtons(); luz.alCambiar(); },
+  (event, codigo) => { logAction(`Evento recibido para el comando ${codigo}: ${event.comando || event.id_comando} completado (${event.estado || 'estado no indicado'}).`, 'ok', event.id_solicitud); luz.alRecibirEvento(event, codigo); }
 ); configureDemos(logAction);
 const context = {
   setStatus: (status, state) => { setStatusCard('ws-status', null, status, state); const online = status === 'En linea'; if (online && !wsAvailable && !catalogLoaded) { catalogRetryDelay = 1000; void loadCatalogs(); } wsAvailable = online; },
   // El registro completo de eventos se muestra en eventos.html; aquí se descartan.
   setVehicleName, setBackendConnectivity, logAction, logEvent: noop, logUnknownEvent: noop,
   notifyDemoStateUnknown: avisarDemoEstadoDesconocido,
-  demoCompleted: completarDemo
+  demoCompleted: (message) => { demoProgreso.alCompletar(message); completarDemo(message); }
 };
 let catalogRetryTimer = null;
 let catalogRetryDelay = 1500;
@@ -77,7 +83,7 @@ async function loadCatalogs() {
   try {
     const result = await request(ROUTES.commands);
     updateState({ commands: Array.isArray(result.comandos) ? result.comandos : [] });
-    renderCommands((code) => enviarComando(code, 'boton'));
+    renderCommands((code) => enviarComando(code, 'boton'), undefined, { [LUZ_CODIGO]: luz.crearBoton });
     commandsOK = getState().commands.length > 0;
   } catch (error) { logAction(`No se pudo cargar el catálogo de comandos: ${error.message}`, 'error'); }
   try {
@@ -96,7 +102,6 @@ renderCommands(() => {});
 await loadCatalogs();
 byId('catalog-retry').addEventListener('click', () => { clearTimeout(catalogRetryTimer); catalogRetryTimer = null; catalogRetryDelay = 1000; void loadCatalogs(); });
 const joystickCommands = { enviarComando, detener, isMovementInFlight, isSustainedMovementActive, getActiveCommand };
-const getCommandCatalog = () => getState().commands;
 setupJoystick(byId('joystick-grua'), byId('joystick-grua-knob'), joystickCommands, getCommandCatalog, JOYSTICK_GRUA);
 setupJoystick(byId('joystick-garra'), byId('joystick-garra-knob'), joystickCommands, getCommandCatalog, JOYSTICK_GARRA);
 
