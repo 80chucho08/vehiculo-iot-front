@@ -21,7 +21,8 @@
 10. [Cómo agregar una página nueva](#-cómo-agregar-una-página-nueva)
 11. [Despliegue en GitHub Pages (mayúsculas y rutas)](#-despliegue-en-github-pages-mayúsculas-y-rutas)
 12. [Experiencia de Usuario y Accesibilidad](#-experiencia-de-usuario-y-accesibilidad)
-13. [Créditos](#-créditos)
+13. [MONITOREO](#-monitoreo)
+14. [Créditos](#-créditos)
 
 ---
 
@@ -105,45 +106,46 @@ La aplicación opera como una cabina de mando interactiva capaz de adaptarse flu
 
 ```text
 control-iot/
-├── index.html                    # CONTROL: pantalla principal (cabina con joysticks, demos y DETENER)
-├── eventos.html                  # Registro de eventos WebSocket (solo lectura)
+├── index.html                    # CONTROL: cabina con joysticks, DEMO y DETENER
+├── monitoreo.html                # MONITOREO: último movimiento + últimos 10 movimientos persistidos
+├── eventos.html                  # Diagnóstico: eventos WebSocket crudos (solo lectura)
 ├── README.md
+├── docs/
+│   └── monitoreo.md              # Auditoría de contratos, arquitectura, pruebas y checklist de MONITOREO
 └── assets/
     ├── css/
     │   ├── tokens.css            # Variables de diseño, temas y @font-face de Inter
     │   ├── base.css              # Compartido: reset, barra superior, estado de servicios, navegación, créditos
-    │   ├── components.css        # Compartido: botones, hojas <dialog>, movimiento reducido
-    │   ├── control.css           # Solo index.html: cuadrícula de cabina, joysticks y consola
-    │   └── eventos.css           # Solo eventos.html: lista de eventos
+    │   ├── components.css        # Compartido: teclas, campos, hojas <dialog>, movimiento reducido
+    │   ├── control.css           # Solo index.html
+    │   ├── monitoreo.css         # Solo monitoreo.html
+    │   └── eventos.css           # Solo eventos.html
     ├── js/
     │   ├── core/                 # Reutilizable por cualquier página
-    │   │   ├── config.js         # URLs, rutas, ID de vehículo, timeouts, créditos y lista de PAGINAS
-    │   │   ├── api.js            # Cliente HTTP (fetch + AbortController + ApiError)
-    │   │   ├── ws.js             # Cliente WebSocket con reconexión y detección offline
-    │   │   ├── health.js         # Sondeo de salud de la API y Amazon RDS
-    │   │   ├── state.js          # Estado global observable
-    │   │   ├── events.js         # Despachador de mensajes WebSocket
-    │   │   ├── feedback.js       # Sonido sintetizado y vibración
-    │   │   ├── tema.js           # Tema de color y efectos reducidos (localStorage)
+    │   │   ├── config.js         # URLs, rutas, ID de vehículo, timeouts, zona horaria, créditos y PAGINAS
+    │   │   ├── api.js            # Cliente REST (fetch + timeout + AbortController + ApiError)
+    │   │   ├── ws.js             # Cliente WSS con reconexión (backoff) y detección offline
+    │   │   ├── events.js         # Despachador de mensajes WSS (filtra otros vehículos)
+    │   │   ├── health.js         # Salud de la API (GET /) y de RDS (GET /health/db)
+    │   │   ├── conectividad.js   # Los 3 indicadores (WSS, API AWS, RDS) para páginas nuevas
+    │   │   ├── validaciones.js   # Validación de payloads REST/WSS reales
+    │   │   ├── fecha.js          # Fechas del backend (UTC sin sufijo) → hora del centro de México
+    │   │   ├── state.js          # Estado global observable (CONTROL)
+    │   │   ├── feedback.js       # Sonido y vibración (CONTROL)
+    │   │   ├── tema.js           # Tema de color y efectos reducidos
     │   │   └── layout.js         # Navegación entre páginas y pie de créditos
-    │   ├── control/              # Módulos de index.html
-    │   │   ├── main.js           # Punto de entrada del control
-    │   │   ├── commands.js       # Despacho de comandos, colas y DETENER
-    │   │   ├── joystick.js       # Joysticks (PointerEvents y teclado)
-    │   │   ├── demo.js           # Rutinas demo
-    │   │   └── ui.js             # Render de comandos/demos, última acción, diálogos y popover
+    │   ├── control/              # Módulos de index.html (main, commands, joystick, demo, demo-progreso, luz, ui)
+    │   ├── monitoreo/
+    │   │   ├── main.js           # Punto de entrada: REST inicial, WSS en vivo, resincronización
+    │   │   ├── ultimo-movimiento.js # Tarjeta del último movimiento y estado de DEMO en vivo
+    │   │   └── historial.js      # Tabla de 10: carga, filtro, deduplicación y confirmación en RDS
     │   ├── eventos/
     │   │   └── main.js           # Punto de entrada de eventos.html
     │   └── data/
     │       ├── joystick-map.js   # Dirección → código de comando
     │       └── grupos.js         # Grupos de comandos (Garra, Grúa, Sistemas)
-    ├── img/
-    │   ├── favicon.svg           # Favicon provisional (monograma CJ)
-    │   ├── favicon-32.png
-    │   ├── apple-touch-icon.png  # 180×180
-    │   └── logo-marca.svg        # Logo provisional
-    └── fonts/
-        └── inter-latin-wght-normal.woff2   # Inter variable, subconjunto latino (SIL OFL 1.1)
+    ├── img/                      # favicon.svg, favicon-32.png, apple-touch-icon.png, logo-marca.svg
+    └── fonts/                    # Inter variable (SIL OFL 1.1)
 ```
 
 > `core/events.js` importa `control/commands.js` para correlacionar solicitudes con eventos; `eventos.html` lo carga pero nunca llama a funciones que envíen peticiones.
@@ -279,7 +281,9 @@ npx http-server -p 8000
 ```sh
 python -m http.server 8000
 ```
-Accede a `http://localhost:8000/` (control) y `http://localhost:8000/eventos.html` (eventos).
+Accede a `http://localhost:8000/` (control), `http://localhost:8000/monitoreo.html` y `http://localhost:8000/eventos.html`.
+
+> **CORS:** el backend solo permite el origen `https://80chucho08.github.io`. En local el WSS conecta, pero el navegador bloquea las llamadas REST (indicador API «No disponible», historial «Desconectado»). Las pruebas REST reales de CONTROL y MONITOREO se hacen en GitHub Pages. Ver [`docs/monitoreo.md`](docs/monitoreo.md).
 
 > **Windows:** si la consola muestra *"Expected a JavaScript module script but the server responded with a MIME type of text/plain"*, el registro de Windows tiene `.js` asociado a `text/plain` y `http.server` lo hereda. Usa la opción de Node.js o corrige la clave `HKEY_CLASSES_ROOT\.js` → `Content Type = text/javascript`, y recarga sin caché.
 
@@ -298,21 +302,21 @@ Abre `http://localhost:8000/control-iot/`. Todas las rutas del proyecto son rela
 
 ## ➕ Cómo agregar una página nueva
 
-Ejemplo: `monitoreo.html`.
+Ejemplo: `administracion.html`.
 
-1. **HTML:** copia `eventos.html` como plantilla a la raíz (`control-iot/monitoreo.html`). Conserva los `<link>` de favicon, `tokens.css`, `base.css` y `components.css`, el `<nav class="app-nav" data-nav>` de la barra superior y el `<footer class="app-credits" id="app-credits">` al final del `<main>`.
-2. **CSS:** crea `assets/css/monitoreo.css` con la maquetación propia de la página y enlázalo.
-3. **JS:** crea `assets/js/monitoreo/main.js` y cárgalo con `<script type="module" src="assets/js/monitoreo/main.js">` (más `assets/js/core/tema.js` para el tema). Dentro:
+1. **HTML:** copia `eventos.html` como plantilla a la raíz (`control-iot/administracion.html`). Conserva los `<link>` de favicon, `tokens.css`, `base.css` y `components.css`, el `<nav class="app-nav" data-nav>` de la barra superior y el `<footer class="app-credits" id="app-credits">` al final del `<main>`.
+2. **CSS:** crea `assets/css/administracion.css` con la maquetación propia de la página y enlázalo.
+3. **JS:** crea `assets/js/administracion/main.js` y cárgalo con `<script type="module" src="assets/js/administracion/main.js">` (más `assets/js/core/tema.js` para el tema). Dentro:
    ```javascript
    import { montarNavegacion, montarCreditos } from '../core/layout.js';
-   montarNavegacion(document.querySelector('[data-nav]'), 'monitoreo');
+   montarNavegacion(document.querySelector('[data-nav]'), 'administracion');
    montarCreditos(document.getElementById('app-credits'));
    ```
 4. **Navegación:** agrega la entrada en `PAGINAS` de `assets/js/core/config.js`:
    ```javascript
-   Object.freeze({ id: 'monitoreo', href: 'monitoreo.html', etiqueta: 'Monitoreo', icono: 'monitoreo' })
+   Object.freeze({ id: 'administracion', href: 'administracion.html', etiqueta: 'Administración', icono: 'administracion' })
    ```
-   El enlace aparece automáticamente en las demás páginas (`core/layout.js` ya incluye iconos para `monitoreo` y `administracion`).
+   El enlace aparece automáticamente en las demás páginas (`core/layout.js` ya incluye el icono de `administracion`).
 5. Usa siempre **rutas relativas** (`assets/...`, `../core/...`), nunca rutas que empiecen con `/`.
 
 ---
@@ -331,6 +335,20 @@ Ejemplo: `monitoreo.html`.
 - **Navegación por Teclado:** Los joysticks disponen de `tabindex="0"` y responden a las teclas direccionales cuando están enfocados.
 - **Regiones Vivas ARIA:** La última acción del control (`#action-messages`, `role="status"`) y la lista de `eventos.html` usan `aria-live="polite"` para compatibilidad con lectores de pantalla.
 - **Detección de Movimiento Reducido:** Estilos adaptados automáticamente ante la preferencia del sistema operativo `@media (prefers-reduced-motion: reduce)`.
+
+---
+
+## 📈 MONITOREO
+
+`monitoreo.html` muestra, en solo lectura:
+
+- **Último movimiento**: carga inicial con `GET /api/vehiculos/1/estado` y actualización inmediata con cada `comando_individual` recibido por WSS (de cualquier pestaña o cliente). Cada movimiento indica por separado si fue **publicado por WSS**, **entregado por el backend**, **persistido en RDS** (confirmado por REST) y que la **ejecución física no es verificable** (el backend responde «sin confirmación de firmware»).
+- **Últimos 10 movimientos individuales persistidos**: `GET /api/vehiculos/1/historial` (el endpoint no admite límite ni orden, así que devuelve todo y se filtra en el navegador). Se excluyen los pasos de DEMO (`origen: "demo"`), se ordena y deduplica por `id_historial` y se muestran fecha y hora en hora del centro de México (el backend guarda UTC). Las filas con `comando` nulo son DETENER.
+- **DEMO en vivo**: entre `demo_iniciada` y `demo_completada` los `comando_individual` se muestran como pasos de la DEMO y no se agregan a la tabla.
+- **Indicadores**: WSS (sesión de este navegador), API AWS (`GET /`) y RDS (`GET /health/db`), independientes entre sí.
+- **Resiliencia**: una sola petición REST en vuelo por recurso, ráfagas de eventos agrupadas, confirmación en RDS con reintentos acotados (sin polling continuo), y resincronización por REST al reconectar el WSS.
+
+Detalle completo (contratos verificados, diagrama, lógica, casos de prueba y checklist): [`docs/monitoreo.md`](docs/monitoreo.md).
 
 ---
 

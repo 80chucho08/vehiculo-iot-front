@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es" data-tema="hielo">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Carrito Jesus · monitoreo del vehículo IoT: último movimiento y últimos diez movimientos persistidos">
+  <title>Carrito Jesus · Monitoreo</title>
+  <meta name="theme-color" content="#1E2028">
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/monitoreo.css">
+  <script type="module" src="assets/js/core/tema.js"></script>
+  <script type="module" src="assets/js/monitoreo/main.js"></script>
+</head>
+<body>
+  <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="logo-marca" viewBox="0 0 48 48"><rect x="2" y="2" width="44" height="44" rx="14" fill="currentColor"/><text class="logo-texto" x="24" y="31.5" text-anchor="middle" font-size="19">CJ</text></symbol>
+    <symbol id="i-wss" viewBox="0 0 24 24"><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 15.8a5 5 0 0 1 7 0"/><path d="M12 19.5h.01"/><path d="M2 9a14.5 14.5 0 0 1 20 0"/></symbol>
+    <symbol id="i-servidor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
+    <symbol id="i-bd" viewBox="0 0 24 24"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
+    <symbol id="i-pulso" viewBox="0 0 24 24"><path d="M3 12h4l3 8 4-16 3 8h4"/></symbol>
+    <symbol id="i-lista" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+    <symbol id="i-aviso" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+  <main class="monitoreo-app">
+    <header class="app-header panel">
+      <div class="brand"><svg class="brand-logo" role="img" aria-label="Carrito Jesus"><use href="#logo-marca"/></svg><div><h1 id="app-name">Monitoreo</h1><p id="vehicle-name">Vehículo ID 1</p></div></div>
+      <section class="health" aria-label="Estado de servicios">
+        <article class="status-card" data-estado="cargando" id="ws-status" title="WebSocket WSS (sesión de este navegador)">
+          <span class="status-icon" aria-hidden="true"><svg class="icono"><use href="#i-wss"/></svg></span>
+          <div><h2><span class="label-larga">WebSocket WSS</span><span class="label-corta" aria-hidden="true">WSS</span></h2><p>Conectando</p></div>
+          <span class="status-pulse" aria-hidden="true"></span>
+        </article>
+        <article class="status-card" data-estado="cargando" id="api-status" title="Servidor AWS · API de 21 servicios">
+          <span class="status-icon" aria-hidden="true"><svg class="icono"><use href="#i-servidor"/></svg></span>
+          <div><h2><span class="label-larga">Servidor AWS · API de 21 servicios</span><span class="label-corta" aria-hidden="true">API</span></h2><p>Comprobando</p></div>
+          <span class="status-pulse" aria-hidden="true"></span>
+        </article>
+        <article class="status-card" data-estado="cargando" id="db-status" title="Amazon RDS">
+          <span class="status-icon" aria-hidden="true"><svg class="icono"><use href="#i-bd"/></svg></span>
+          <div><h2><span class="label-larga">Amazon RDS</span><span class="label-corta" aria-hidden="true">RDS</span></h2><p>Sin verificar</p></div>
+          <span class="status-pulse" aria-hidden="true"></span>
+        </article>
+      </section>
+      <div class="header-actions"><nav class="app-nav" data-nav aria-label="Secciones"><a class="nav-link" href="index.html" aria-label="Control" title="Control">Control</a></nav></div>
+    </header>
+
+    <section class="mon-ultimo panel" aria-labelledby="ultimo-titulo">
+      <div class="mon-encabezado">
+        <h2 id="ultimo-titulo"><svg class="icono" aria-hidden="true"><use href="#i-pulso"/></svg>Último movimiento</h2>
+        <p class="mon-sub" id="ultimo-fuente">Consultando el estado del vehículo…</p>
+      </div>
+      <article class="ultimo-card" id="ultimo-card" data-estado="cargando" data-demo="false" aria-live="polite" aria-atomic="false">
+        <p class="ultimo-nombre" id="ultimo-nombre">Cargando…</p>
+        <p class="ultimo-codigo" id="ultimo-codigo" hidden></p>
+        <div class="ultimo-fecha">
+          <span class="fecha-bloque"><span class="fecha-etiqueta">Fecha</span><time id="ultimo-fecha">—</time></span>
+          <span class="fecha-bloque"><span class="fecha-etiqueta">Hora</span><time id="ultimo-hora">—</time></span>
+        </div>
+        <p class="ultimo-fecha-fuente" id="ultimo-fecha-fuente"></p>
+      </article>
+      <p class="mon-aviso" id="ultimo-aviso" role="status" hidden></p>
+      <ol class="fases" id="ultimo-fases" aria-label="Verificación del movimiento">
+        <li data-fase="publicado" data-estado="pendiente"><span class="fase-icono" aria-hidden="true">…</span><span class="fase-nombre">Publicado por WSS</span><span class="fase-texto">—</span></li>
+        <li data-fase="entregado" data-estado="pendiente"><span class="fase-icono" aria-hidden="true">…</span><span class="fase-nombre">Entregado por el backend</span><span class="fase-texto">—</span></li>
+        <li data-fase="persistido" data-estado="pendiente"><span class="fase-icono" aria-hidden="true">…</span><span class="fase-nombre">Persistido en RDS</span><span class="fase-texto">—</span></li>
+        <li data-fase="fisico" data-estado="sin-verificar"><span class="fase-icono" aria-hidden="true">?</span><span class="fase-nombre">Ejecutado físicamente</span><span class="fase-texto">No verificable: no hay telemetría del dispositivo</span></li>
+      </ol>
+      <div class="demo-estado" id="demo-estado" data-estado="en-curso" role="status" hidden>
+        <span class="demo-estado-icono" aria-hidden="true"></span>
+        <div><p class="demo-estado-titulo" id="demo-estado-titulo"></p><p class="demo-estado-detalle" id="demo-estado-detalle"></p></div>
+      </div>
+    </section>
+
+    <section class="mon-historial panel" aria-labelledby="historial-titulo">
+      <div class="mon-encabezado">
+        <h2 id="historial-titulo"><svg class="icono" aria-hidden="true"><use href="#i-lista"/></svg>Últimos 10 movimientos</h2>
+        <p class="mon-sub">Movimientos individuales persistidos en Amazon RDS (sin pasos de DEMO) · <span id="zona-horaria">Hora del centro de México</span></p>
+      </div>
+      <p class="historial-estado" id="historial-estado" data-estado="cargando" role="status" aria-live="polite">Cargando movimientos…</p>
+      <div class="tabla-marco">
+        <table class="historial-tabla" id="historial-tabla" data-estado="cargando">
+          <caption class="sr-only">Últimos diez movimientos individuales del vehículo, del más reciente al más antiguo</caption>
+          <thead><tr><th scope="col" class="col-num">#</th><th scope="col" class="col-mov">Movimiento</th><th scope="col" class="col-fecha">Fecha</th><th scope="col" class="col-hora">Hora</th></tr></thead>
+          <tbody id="historial-cuerpo"></tbody>
+        </table>
+      </div>
+      <p class="historial-actualizado" id="historial-actualizado"></p>
+    </section>
+
+    <p class="mon-nota panel" role="note"><svg class="icono" aria-hidden="true"><use href="#i-aviso"/></svg><span>La sesión WebSocket indica la conexión de este navegador con el servidor, no la presencia del vehículo. Ningún dato de esta página confirma la ejecución física: el backend informa «sin confirmación de firmware».</span></p>
+
+    <footer class="app-credits" id="app-credits"></footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,129 @@
+/* Página de MONITOREO (monitoreo.html). Mobile First; reutiliza tokens, paneles y píldoras del CONTROL.
+   La página puede desplazarse verticalmente; nunca en horizontal (la tabla se ajusta al ancho). */
+html,body{overflow-x:hidden}
+.monitoreo-app{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:'topbar' 'ultimo' 'historial' 'nota' 'creditos';gap:var(--esp-3);width:100%;max-width:1280px;min-height:100dvh;margin:0 auto;padding:max(var(--esp-2),env(safe-area-inset-top)) max(var(--esp-3),env(safe-area-inset-right)) max(var(--esp-2),env(safe-area-inset-bottom)) max(var(--esp-3),env(safe-area-inset-left));align-content:start}
+.monitoreo-app>*{min-width:0}
+.monitoreo-app .app-header{grid-area:topbar;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'brand actions' 'health health'}
+.monitoreo-app .nav-link{padding:0 var(--esp-3)}
+.monitoreo-app .app-credits{grid-area:creditos;padding:var(--esp-2) 0}
+/* Etiquetas largas de servicio solo donde caben; el resto las lee igual (sr-only) */
+@media (max-width:1279px){
+  .status-card .label-larga{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .status-card .label-corta{display:inline}
+}
+@media (max-width:500px){.status-icon{display:none}.status-card{padding:0 var(--esp-2);gap:6px}}
+
+/* Encabezados de sección */
+.mon-encabezado{display:grid;gap:2px;margin-bottom:var(--esp-3)}
+.mon-encabezado h2{display:flex;align-items:center;gap:var(--esp-2);font-size:var(--t-medio);font-weight:700;letter-spacing:.01em}
+.mon-encabezado h2 .icono{color:var(--acento)}
+.mon-sub{color:var(--texto-2);font-size:var(--t-micro);line-height:1.4}
+
+/* ===== Último movimiento ===== */
+.mon-ultimo{grid-area:ultimo;padding:var(--esp-4);display:flex;flex-direction:column;min-width:0}
+.ultimo-card{display:grid;gap:var(--esp-2);padding:var(--esp-4);border:1px solid var(--acento-medio);border-radius:var(--r-tarjeta);background:var(--superficie-hundida);box-shadow:var(--hundido)}
+.ultimo-nombre{font-size:clamp(22px,3.4vmin + 10px,36px);font-weight:700;letter-spacing:-.015em;line-height:1.1;overflow-wrap:anywhere}
+.ultimo-codigo{color:var(--texto-2);font-size:var(--t-chico);font-weight:600;letter-spacing:.02em}
+.ultimo-codigo[hidden]{display:none}
+.ultimo-fecha{display:flex;flex-wrap:wrap;gap:var(--esp-2) var(--esp-5);margin-top:var(--esp-1)}
+.fecha-bloque{display:grid;gap:1px}
+.fecha-etiqueta{color:var(--texto-2);font-size:var(--t-micro);font-weight:600;letter-spacing:var(--tracking-etiqueta);text-transform:uppercase}
+.fecha-bloque time{font-size:var(--t-titulo);font-weight:600;font-variant-numeric:tabular-nums}
+.ultimo-fecha-fuente{color:var(--texto-2);font-size:var(--t-micro)}
+.ultimo-card[data-estado=cargando] .ultimo-nombre{color:var(--texto-2)}
+.ultimo-card[data-estado=cargando] .ultimo-nombre::before{content:"";display:inline-block;width:.6em;height:.6em;margin-right:.35em;border:2px solid rgb(var(--aviso-rgb) / .3);border-top-color:var(--aviso);border-radius:50%;vertical-align:.05em;animation:mon-girar .9s linear infinite}
+.ultimo-card[data-estado=sin-datos] .ultimo-nombre{color:var(--texto-2)}
+.ultimo-card[data-estado=error],.ultimo-card[data-estado=desconectado]{border-color:var(--error)}
+.ultimo-card[data-estado=error] .ultimo-nombre::before{content:"⚠ ";color:var(--error)}
+.ultimo-card[data-estado=desconectado] .ultimo-nombre::before{content:"⊘ ";color:var(--error)}
+.ultimo-card[data-demo=true]{border-color:var(--aviso)}
+.ultimo-card[data-estado=ok]{animation:mon-destello var(--duracion-media) ease-out}
+
+.mon-aviso{margin-top:var(--esp-2);padding:var(--esp-2) var(--esp-3);border:1px solid var(--aviso);border-radius:var(--r-control);color:var(--texto);font-size:var(--t-chico);background:rgb(var(--aviso-rgb) / .08)}
+.mon-aviso::before{content:"⚠ ";color:var(--aviso)}
+.mon-aviso[data-tipo=error],.mon-aviso[data-tipo=desconectado]{border-color:var(--error);background:rgb(var(--error-rgb) / .08)}
+.mon-aviso[hidden]{display:none}
+
+/* Fases de verificación: icono + nombre + texto; el estado nunca solo por color */
+.fases{display:grid;gap:6px;margin:var(--esp-3) 0 0;padding:0;list-style:none}
+.fases li{display:grid;grid-template-columns:24px minmax(0,1fr);grid-template-areas:'icono nombre' 'icono texto';column-gap:var(--esp-2);align-items:center;padding:6px var(--esp-2);border-radius:var(--r-control);background:var(--superficie);box-shadow:var(--relieve-xs)}
+.fase-icono{grid-area:icono;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--superficie-hundida);box-shadow:var(--hundido-sm);font-size:12px;font-weight:800}
+.fase-nombre{grid-area:nombre;font-size:var(--t-chico);font-weight:700}
+.fase-texto{grid-area:texto;color:var(--texto-2);font-size:var(--t-micro);overflow-wrap:anywhere}
+.fases li[data-estado=hecho] .fase-icono{color:var(--ok)}
+.fases li[data-estado=pendiente] .fase-icono{color:var(--aviso)}
+.fases li[data-estado=no-aplica] .fase-icono{color:var(--texto-2)}
+.fases li[data-estado=sin-verificar] .fase-icono{color:var(--texto-2)}
+.fases li[data-estado=sin-confirmar] .fase-icono{color:var(--error)}
+.fases li[data-estado=no-aplica] .fase-nombre{color:var(--texto-2)}
+
+/* DEMO en tiempo real (no es historial) */
+.demo-estado{display:flex;align-items:center;gap:var(--esp-3);margin-top:var(--esp-3);padding:var(--esp-2) var(--esp-3);border:1px solid var(--aviso);border-radius:var(--r-tarjeta);background:var(--superficie-hundida);box-shadow:var(--hundido-sm)}
+.demo-estado[hidden]{display:none}
+.demo-estado-icono{display:grid;place-items:center;width:28px;height:28px;flex:none;border-radius:50%;background:var(--superficie);box-shadow:var(--relieve-xs);color:var(--aviso);font-weight:800}
+.demo-estado[data-estado=en-curso] .demo-estado-icono::before{content:"▶"}
+.demo-estado[data-estado=completada]{border-color:var(--ok)}
+.demo-estado[data-estado=completada] .demo-estado-icono{color:var(--ok)}
+.demo-estado[data-estado=completada] .demo-estado-icono::before{content:"✓"}
+.demo-estado[data-estado=desconocida] .demo-estado-icono::before{content:"?"}
+.demo-estado-titulo{font-size:var(--t-chico);font-weight:700}
+.demo-estado-detalle{color:var(--texto-2);font-size:var(--t-micro);font-variant-numeric:tabular-nums}
+
+/* ===== Tabla de 10 movimientos ===== */
+.mon-historial{grid-area:historial;padding:var(--esp-4);min-width:0}
+.historial-estado{display:flex;align-items:center;gap:var(--esp-2);margin-bottom:var(--esp-2);color:var(--texto-2);font-size:var(--t-chico)}
+.historial-estado::before{content:"✓";color:var(--ok);font-weight:800}
+.historial-estado[data-estado=cargando]::before{content:"";width:12px;height:12px;flex:none;border:2px solid rgb(var(--aviso-rgb) / .3);border-top-color:var(--aviso);border-radius:50%;animation:mon-girar .9s linear infinite}
+.historial-estado[data-estado=vacio]::before{content:"–";color:var(--texto-2)}
+.historial-estado[data-estado=error]::before{content:"⚠";color:var(--error)}
+.historial-estado[data-estado=desconectado]::before{content:"⊘";color:var(--error)}
+.historial-estado[data-estado=error],.historial-estado[data-estado=desconectado]{color:var(--error)}
+.historial-estado[data-actualizando]::after{content:"· actualizando…";color:var(--aviso)}
+.tabla-marco{border-radius:var(--r-tarjeta);background:var(--superficie-hundida);box-shadow:var(--hundido);overflow:hidden}
+.historial-tabla{width:100%;border-collapse:collapse;table-layout:fixed;font-size:var(--t-chico)}
+.historial-tabla th{padding:var(--esp-2) var(--esp-2);color:var(--texto-2);font-size:var(--t-micro);font-weight:600;letter-spacing:var(--tracking-etiqueta);text-align:left;text-transform:uppercase;border-bottom:1px solid var(--borde-control)}
+.historial-tabla td{padding:var(--esp-2);border-bottom:1px solid var(--borde);vertical-align:middle;overflow-wrap:anywhere}
+.historial-tabla tbody tr:last-child td{border-bottom:0}
+.historial-tabla .col-num{width:2.4rem;text-align:center;color:var(--texto-2);font-variant-numeric:tabular-nums}
+.historial-tabla .col-fecha{width:6.6rem}
+.historial-tabla .col-hora{width:5.2rem}
+.historial-tabla td.col-fecha,.historial-tabla td.col-hora{font-variant-numeric:tabular-nums;white-space:nowrap}
+.mov-nombre{display:block;font-weight:600}
+.mov-meta{display:block;margin-top:1px;color:var(--texto-2);font-size:var(--t-micro)}
+tr[data-detener=true] .mov-nombre{color:var(--error)}
+tr[data-detener=true] .mov-nombre::before{content:"■ "}
+tr[data-nuevo=true] td{animation:mon-fila-nueva 1.6s ease-out}
+.historial-tabla[data-estado=cargando] tbody:empty::after,.historial-tabla[data-estado=vacio] tbody:empty::after{content:"";display:block}
+.historial-actualizado{margin-top:var(--esp-2);color:var(--texto-2);font-size:var(--t-micro);text-align:right;font-variant-numeric:tabular-nums}
+
+/* Nota de alcance */
+.mon-nota{grid-area:nota;display:flex;align-items:flex-start;gap:var(--esp-3);padding:var(--esp-3) var(--esp-4);border-radius:var(--r-tarjeta);color:var(--texto-2);font-size:var(--t-micro);line-height:1.45}
+.mon-nota .icono{color:var(--acento)}
+
+@keyframes mon-girar{to{transform:rotate(360deg)}}
+@keyframes mon-fila-nueva{from{background:rgb(var(--acento-rgb) / .22)}to{background:transparent}}
+@keyframes mon-destello{from{box-shadow:var(--hundido),0 0 0 3px rgb(var(--acento-rgb) / .35)}to{box-shadow:var(--hundido),0 0 0 0 rgb(var(--acento-rgb) / 0)}}
+
+/* Teléfono muy estrecho: fecha más compacta */
+@media (max-width:380px){
+  .historial-tabla .col-num{width:1.8rem}
+  .historial-tabla .col-fecha{width:5.7rem}
+  .historial-tabla .col-hora{width:4.6rem}
+  .historial-tabla td,.historial-tabla th{padding:6px 4px}
+}
+/* Horizontal / tableta / escritorio: dos columnas */
+@media (min-width:700px){
+  .monitoreo-app{grid-template-columns:minmax(280px,.85fr) minmax(0,1.25fr);grid-template-areas:'topbar topbar' 'ultimo historial' 'nota nota' 'creditos creditos';gap:var(--esp-4)}
+  .monitoreo-app .app-header{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:'brand health actions'}
+}
+@media (min-width:1024px){
+  .monitoreo-app{padding-inline:var(--esp-5)}
+  .mon-ultimo,.mon-historial{padding:var(--esp-5)}
+}
+@media (prefers-reduced-motion:reduce){
+  .ultimo-card,tr[data-nuevo=true] td{animation:none!important}
+}
+@media (prefers-contrast:more){
+  .ultimo-card,.tabla-marco{border:1px solid var(--borde-fuerte)}
+  .historial-tabla td{border-bottom-color:var(--borde-control)}
+}
