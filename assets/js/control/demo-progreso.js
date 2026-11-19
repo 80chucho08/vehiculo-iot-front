@@ -9,7 +9,8 @@ const OCULTAR_CANCELADA_MS = 2000;
 const OCULTAR_DESCONOCIDA_MS = 6000;
 
 /**
- * Mensajes WS con progreso interno de la demo. El contrato actual solo define demo_completada,
+ * Mensajes WS con progreso interno de la demo. El contrato actual define el fin (demo_completada,
+ * demo_cancelada, demo_error, que llegan por demo.js) pero ningún mensaje de avance,
  * así que el mapa está vacío y la barra queda indeterminada. Para soportar un mensaje documentado,
  * agrega una entrada: tipo → función que devuelve { movimiento, total? } leyendo sus campos.
  * Ejemplo (NO existe en el contrato actual):
@@ -20,6 +21,10 @@ export const PROGRESO_POR_TIPO = Object.freeze({});
 // Causas de fin y avisos, reconocidos por los mensajes de acción existentes de demo.js.
 const CAUSAS_FIN = [
   [/^Cancelacion de demo aceptada/, 'cancelada'],
+  [/^Demo \S+ cancelada por el backend/, 'cancelada'],
+  [/^La demo se cancelo durante la solicitud de inicio/, 'cancelada'],
+  [/^Demo \S+ interrumpida por el backend/, 'error'],
+  [/^La demo se interrumpio durante la solicitud de inicio/, 'error'],
   [/^Se agoto el tiempo de seguridad/, 'timeout'],
   [/^La API rechazo el inicio de la demo/, 'rechazada'],
   [/^No se inicio la demo/, 'rechazada'],
@@ -155,6 +160,8 @@ export function crearDemoProgreso({ getState, subscribe, cancelar }) {
       terminar('cancelada', {}, OCULTAR_CANCELADA_MS);
     } else if (causa === 'rechazada') {
       terminar('cancelada', { texto: 'Demo no iniciada', info: 'La demo no llegó a iniciarse.' }, OCULTAR_CANCELADA_MS);
+    } else if (causa === 'error') {
+      terminar('desconocida', { texto: 'Demo interrumpida', info: 'El backend detuvo la demo por un error; revisa el vehículo.' }, OCULTAR_DESCONOCIDA_MS);
     } else {
       // Timeout de seguridad u otra causa no confirmada: no se afirma nada sobre el vehículo.
       terminar('desconocida', { info: causa === 'timeout' ? 'Venció el tiempo de seguridad sin confirmación.' : 'No se recibió confirmación del final.' }, OCULTAR_DESCONOCIDA_MS);

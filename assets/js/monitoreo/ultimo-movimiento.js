@@ -163,6 +163,13 @@ export function crearEstadoDemo(ui) {
       pintar('completada', 'DEMO completada', `${total ?? demo?.paso ?? '?'} movimientos publicados · sin confirmación física`);
       ocultarTimer = setTimeout(() => { ui.caja.hidden = true; }, 8000);
     },
+    cancelada: (demo) => {
+      clearTimeout(ocultarTimer);
+      const pasos = demo?.paso;
+      pintar('cancelada', 'DEMO cancelada', pasos == null ? 'Cancelada por el backend' : `${pasos} ${pasos === 1 ? 'paso publicado' : 'pasos publicados'} antes de cancelar`);
+      ocultarTimer = setTimeout(() => { ui.caja.hidden = true; }, 8000);
+    },
+    interrumpida: (motivo) => { clearTimeout(ocultarTimer); pintar('desconocida', 'DEMO interrumpida por el backend', motivo); },
     desconocida: (motivo) => pintar('desconocida', 'Estado de DEMO desconocido', motivo)
   };
 }

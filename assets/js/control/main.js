@@ -5,8 +5,8 @@ import { createWebSocket } from '../core/ws.js';
 import { getState, updateState, subscribe } from '../core/state.js';
 import { montarNavegacion, montarCreditos } from '../core/layout.js';
 import { byId, setStatusCard, createActionLogger, setVehicleName, setBackendConnectivity, renderCommands, renderDemos, setCommandButtonsState, initControlChrome } from './ui.js';
-import { configureCommands, enviarComando, detener, isMovementInFlight, isSustainedMovementActive, getActiveCommand } from './commands.js';
-import { configureDemos, loadDemos, iniciarDemo, cancelarDemo, completarDemo, avisarDemoEstadoDesconocido } from './demo.js';
+import { configureCommands, enviarComando, detener, isMovementInFlight, isSustainedMovementActive, getActiveCommand, alAceptarDetener } from './commands.js';
+import { configureDemos, loadDemos, iniciarDemo, cancelarDemo, completarDemo, finalizarDemo, avisarDemoEstadoDesconocido } from './demo.js';
 import { setupJoystick } from './joystick.js';
 import { crearLuz } from './luz.js';
 import { crearDemoProgreso } from './demo-progreso.js';
@@ -44,8 +44,15 @@ const context = {
   // El registro completo de eventos se muestra en eventos.html; aquí se descartan.
   setVehicleName, setBackendConnectivity, logAction, logEvent: noop, logUnknownEvent: noop,
   notifyDemoStateUnknown: avisarDemoEstadoDesconocido,
-  demoCompleted: (message) => { demoProgreso.alCompletar(message); completarDemo(message); }
+  demoCompleted: (message) => { demoProgreso.alCompletar(message); completarDemo(message); },
+  demoEnded: (message, causa) => finalizarDemo(message, causa, 'evento WSS')
 };
+// DETENER cancela la demo en el backend; si el evento WSS se perdió, la respuesta REST lo confirma.
+alAceptarDetener((response) => {
+  if (response?.demo_cancelada === true && getState().demoId != null) {
+    finalizarDemo({ id_demo: getState().demoId }, 'cancelada', 'respuesta de DETENER');
+  }
+});
 let catalogRetryTimer = null;
 let catalogRetryDelay = 1500;
 let catalogLoading = false;

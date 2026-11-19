@@ -19,6 +19,9 @@ handlers.comando_individual_completado = (message, context) => {
 };
 
 handlers.demo_completada = (message, context) => context.demoCompleted(message);
+// El backend envía demo_cancelada al cancelar (también cuando DETENER la interrumpe) y demo_error si falla.
+handlers.demo_cancelada = (message, context) => context.demoEnded?.(message, 'cancelada');
+handlers.demo_error = (message, context) => context.demoEnded?.(message, 'error');
 
 export function registerMessageHandler(type, handler) {
   if (typeof handler !== 'function') throw new TypeError('El manejador de mensajes debe ser una funcion.');

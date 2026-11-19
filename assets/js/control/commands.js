@@ -45,6 +45,9 @@ function backendDetail(error) {
 export function configureCommands(handler, stateHandler = () => {}, eventHandler = () => {}) {
   onAction = handler; onChange = stateHandler; onCorrelatedEvent = eventHandler;
 }
+// Se llama con cada respuesta 2xx de DETENER. Respaldo REST por si el evento WSS demo_cancelada no llega.
+let onStopAccepted = () => {};
+export function alAceptarDetener(listener) { onStopAccepted = typeof listener === 'function' ? listener : () => {}; }
 export function getActiveCommand() { return activeCode; }
 export function isMovementInFlight() { return movementInFlight; }
 export function isSustainedMovementActive() { return activeCode !== null; }
@@ -159,6 +162,7 @@ async function sendStopOnce() {
     try {
       const response = await request(ROUTES.stop, { method: HTTP_METHODS.stop, signal: controller.signal });
       showAction(`DETENER aceptado por API: ${response.estado || 'respuesta recibida'}.`, 'ok');
+      try { onStopAccepted(response); } catch (error) { console.warn('No se pudo procesar la respuesta de DETENER:', error); }
       return { accepted: true, clientError: false };
     } catch (error) {
       const status = Number(error?.status) || 0;

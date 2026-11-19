@@ -23,7 +23,7 @@ Verificado contra `https://vehiculo-iot-itp.duckdns.org` el 2026-11-13. Fuentes:
 | WSS al conectar | `estado_inicial { id_vehiculo, estado: [...], demos: [...] }` |
 | WSS por comando | `comando_individual { id_vehiculo, id_solicitud, id_comando, comando, codigo }`, y ~50 ms después `comando_individual_completado { id_vehiculo, id_solicitud, id_comando, comando, estado, mensaje }` (sin `codigo`). |
 | WSS de DETENER | `comando: "APAGAR_TODO"`, `codigo: 0`, `id_comando: null` |
-| WSS de DEMO | `demo_iniciada { id_demo, nombre, total_movimientos }`, luego N pares `comando_individual` / `_completado` **idénticos** a un comando suelto (sin `id_demo` ni `origen`), y al final `demo_completada { id_demo, total_movimientos }`. Los pasos se persisten con `origen: "demo"`. |
+| WSS de DEMO | `demo_iniciada { id_demo, nombre, total_movimientos }`, luego N pares `comando_individual` / `_completado` **idénticos** a un comando suelto (sin `id_demo` ni `origen`), y al final `demo_completada { id_demo, total_movimientos }`, o bien `demo_cancelada { id_demo }` (cancelación, también por DETENER) o `demo_error { id_demo, mensaje }`. Los pasos se persisten con `origen: "demo"`. |
 | Correlación evento ↔ fila | El historial **no** incluye `id_solicitud`. Se confirma por `id_historial` mayor al último conocido + mismo `codigo` (o `null` para DETENER). |
 | Presencia del vehículo | No existe una señal fiable: `conectado_websocket` siguió en `false` con un cliente WSS abierto. Solo se etiqueta la sesión WSS del navegador. |
 | Salud | `GET /` (API) y `GET /health/db` (RDS), ya implementados en `core/health.js`. |
@@ -90,7 +90,7 @@ Verificado contra `https://vehiculo-iot-itp.duckdns.org` el 2026-11-13. Fuentes:
 
 ### Recuperación
 
-- **Al reabrir el WSS** (no en la primera conexión), al recibir el evento `online` del navegador y tras `demo_completada`: resincronización REST de estado e historial, cada uno de forma única en vuelo.
+- **Al reabrir el WSS** (no en la primera conexión), al recibir el evento `online` del navegador y tras `demo_completada`, `demo_cancelada` o `demo_error`: resincronización REST de estado e historial, cada uno de forma única en vuelo.
 - **Si se pierde la conexión durante una DEMO:** su estado pasa a «desconocido». Si no llega `demo_completada` en `DEMO_TIMEOUT_MS`, también.
 
 ### Indicadores (`core/conectividad.js`)

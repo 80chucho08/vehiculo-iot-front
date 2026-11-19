@@ -66,6 +66,9 @@ html,body{overflow-x:hidden}
 .demo-estado[data-estado=completada] .demo-estado-icono{color:var(--ok)}
 .demo-estado[data-estado=completada] .demo-estado-icono::before{content:"✓"}
 .demo-estado[data-estado=desconocida] .demo-estado-icono::before{content:"?"}
+.demo-estado[data-estado=cancelada]{border-color:var(--texto-2)}
+.demo-estado[data-estado=cancelada] .demo-estado-icono{color:var(--texto-2)}
+.demo-estado[data-estado=cancelada] .demo-estado-icono::before{content:"✕"}
 .demo-estado-titulo{font-size:var(--t-chico);font-weight:700}
 .demo-estado-detalle{color:var(--texto-2);font-size:var(--t-micro);font-variant-numeric:tabular-nums}
 

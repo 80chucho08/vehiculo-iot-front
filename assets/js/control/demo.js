@@ -9,6 +9,16 @@ let demoStartSubmitted = false;
 let completionCount = 0;
 let completionReceivedForActiveDemo = false;
 let demoGeneration = 0;
+// Cómo terminó la última demo según el backend: 'completada' | 'cancelada' | 'error'.
+let lastEndCause = null;
+
+// Texto cuando el fin llega mientras el POST de inicio sigue pendiente (demo-progreso.js reconoce estos prefijos).
+const FIN_DURANTE_INICIO = Object.freeze({
+  completada: ['La demo se completo durante la solicitud de inicio.', 'ok'],
+  cancelada: ['La demo se cancelo durante la solicitud de inicio.', 'ok'],
+  error: ['La demo se interrumpio durante la solicitud de inicio.', 'error']
+});
+const avisarFinDuranteInicio = () => onAction(...(FIN_DURANTE_INICIO[lastEndCause] || FIN_DURANTE_INICIO.completada));
 
 export function configureDemos(handler) { onAction = handler; }
 
@@ -77,8 +87,8 @@ export async function iniciarDemo(id) {
       startPostPending = false;
       if (completionCount !== countAtPostStart) {
         clearDemoState();
-        onAction('La demo se completo durante la solicitud de inicio.', 'ok');
-        return true;
+        avisarFinDuranteInicio();
+        return lastEndCause === 'completada';
       }
       if (isClearHttpFailure(error)) {
         clearDemoState();
@@ -94,8 +104,8 @@ export async function iniciarDemo(id) {
 
     if (completionCount !== countAtPostStart) {
       clearDemoState();
-      onAction('La demo se completo durante la solicitud de inicio.', 'ok');
-      return true;
+      avisarFinDuranteInicio();
+      return lastEndCause === 'completada';
     }
     if (response?.estado !== 'en_ejecucion') {
       setSafetyTimeout(id);
@@ -131,14 +141,33 @@ export async function cancelarDemo() {
   }
 }
 
-export function completarDemo(message) {
+// Registra el fin de la demo activa una sola vez, venga de WSS o de la respuesta de DETENER.
+function registrarFin(message, causa) {
   const state = getState();
   const inProgress = state.demoRunning || demoStartSubmitted;
-  if (!inProgress || String(message?.id_demo) !== String(state.demoId) || completionReceivedForActiveDemo) return;
+  if (!inProgress || String(message?.id_demo) !== String(state.demoId) || completionReceivedForActiveDemo) return false;
   completionCount += 1;
+  lastEndCause = causa;
   completionReceivedForActiveDemo = true;
   if (!startPostPending) clearDemoState();
+  return true;
+}
+
+export function completarDemo(message) {
+  if (!registrarFin(message, 'completada')) return;
   onAction(`Evento recibido: demo ${message.id_demo} completada (${message.total_movimientos} movimientos).`, 'ok');
+}
+
+/**
+ * El backend terminó la demo sin completarla: `demo_cancelada` (p. ej. DETENER la canceló) o `demo_error`.
+ * @param {{id_demo:number, mensaje?:string}} message
+ * @param {'cancelada'|'error'} causa
+ * @param {string} fuente de dónde llegó el aviso (evento WSS o respuesta de DETENER)
+ */
+export function finalizarDemo(message, causa, fuente) {
+  if (!registrarFin(message, causa)) return;
+  if (causa === 'cancelada') onAction(`Demo ${message.id_demo} cancelada por el backend (${fuente}).`, 'ok');
+  else onAction(`Demo ${message.id_demo} interrumpida por el backend (${fuente}): ${message?.mensaje || 'sin detalle'}`, 'error');
 }
 
 export function avisarDemoEstadoDesconocido() {

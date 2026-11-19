@@ -161,7 +161,7 @@ control-iot/
 ### 2. Comunicación y Red
 - **`core/api.js`**: Provee la función `request(path, options)` para llamadas HTTP con control de tiempo de espera (`AbortController`), parseo tolerante a JSON y emisión de instancias `ApiError` estructuradas.
 - **`core/ws.js`**: Establece el enlace WebSocket seguro (`WSS`). Administra reconexiones automáticas con variación aleatoria (*jitter*), supervisa cambios de red (`online`/`offline`) y procesa eventos de visibilidad de pestaña.
-- **`core/events.js`**: Recibe los mensajes deserializados del WebSocket, filtra eventos dirigidos al `VEHICLE_ID` configurado y despacha manejadores específicos (`estado_inicial`, `comando_individual_completado`, `demo_completada`).
+- **`core/events.js`**: Recibe los mensajes deserializados del WebSocket, filtra eventos dirigidos al `VEHICLE_ID` configurado y despacha manejadores específicos (`estado_inicial`, `comando_individual_completado`, `demo_completada`, `demo_cancelada`, `demo_error`).
 - **`core/health.js`**: Ejecuta verificaciones periódicas de estado contra la API y la base de datos RDS, adaptando el intervalo según la disponibilidad de la red.
 
 ### 3. Mecánica de Control
@@ -236,6 +236,8 @@ Los comandos del vehículo se organizan en `assets/js/data/grupos.js` y `assets/
    Notifica la conclusión de la ejecución de una instrucción previamente despachada por HTTP mediante el correlacionador `id_solicitud`.
 3. **`demo_completada`**:
    Indica que la secuencia de movimientos de una rutina demo finalizó con éxito (`total_movimientos`).
+4. **`demo_cancelada`** / **`demo_error`**:
+   La demo terminó sin completarse: se canceló (también cuando **DETENER** la interrumpe) o falló en el backend. CONTROL libera el bloqueo y la tarjeta muestra «Demo cancelada» o «Demo interrumpida». Como respaldo, si la respuesta de `POST /detener` trae `demo_cancelada: true`, CONTROL también da la demo por terminada aunque el evento WSS no haya llegado.
 
 ---
 
@@ -344,7 +346,7 @@ Ejemplo: `administracion.html`.
 
 - **Último movimiento**: carga inicial con `GET /api/vehiculos/1/estado` y actualización inmediata con cada `comando_individual` recibido por WSS (de cualquier pestaña o cliente). Cada movimiento indica por separado si fue **publicado por WSS**, **entregado por el backend**, **persistido en RDS** (confirmado por REST) y que la **ejecución física no es verificable** (el backend responde «sin confirmación de firmware»).
 - **Últimos 10 movimientos individuales persistidos**: `GET /api/vehiculos/1/historial` (el endpoint no admite límite ni orden, así que devuelve todo y se filtra en el navegador). Se excluyen los pasos de DEMO (`origen: "demo"`), se ordena y deduplica por `id_historial` y se muestran fecha y hora en hora del centro de México (el backend guarda UTC). Las filas con `comando` nulo son DETENER.
-- **DEMO en vivo**: entre `demo_iniciada` y `demo_completada` los `comando_individual` se muestran como pasos de la DEMO y no se agregan a la tabla.
+- **DEMO en vivo**: entre `demo_iniciada` y `demo_completada` (o `demo_cancelada` / `demo_error`) los `comando_individual` se muestran como pasos de la DEMO y no se agregan a la tabla.
 - **Indicadores**: WSS (sesión de este navegador), API AWS (`GET /`) y RDS (`GET /health/db`), independientes entre sí.
 - **Resiliencia**: una sola petición REST en vuelo por recurso, ráfagas de eventos agrupadas, confirmación en RDS con reintentos acotados (sin polling continuo), y resincronización por REST al reconectar el WSS.
 

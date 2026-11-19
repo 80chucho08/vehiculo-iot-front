@@ -114,6 +114,22 @@ registerMessageHandler('demo_completada', (mensaje) => {
   cerrarDemo();
   void sincronizarEstado(); // el estado REST confirma el último paso persistido
 });
+// Cancelación (también cuando DETENER la interrumpe) o fallo: la DEMO deja de estar en curso.
+// El APAGAR_TODO que sigue llega como comando_individual normal, ya fuera de la DEMO.
+registerMessageHandler('demo_cancelada', (mensaje) => {
+  const datos = validarDemoWss(mensaje);
+  if (!datos) return;
+  estadoDemo.cancelada(demo && demo.idDemo === datos.idDemo ? demo : null);
+  cerrarDemo();
+  void resincronizar();
+});
+registerMessageHandler('demo_error', (mensaje) => {
+  const datos = validarDemoWss(mensaje);
+  if (!datos) return;
+  estadoDemo.interrumpida(typeof mensaje.mensaje === 'string' ? mensaje.mensaje : 'La ejecución se interrumpió.');
+  cerrarDemo();
+  void resincronizar();
+});
 
 // ---- WebSocket (una conexión por pestaña; reconexión con backoff en core/ws.js)
 let abiertoAntes = false;
