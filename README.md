@@ -354,6 +354,35 @@ Detalle completo (contratos verificados, diagrama, lógica, casos de prueba y ch
 
 ---
 
+## 🏢 ADMINISTRACIÓN (`administracion.html`, práctica 4.3)
+
+Tercera aplicación, sobre la misma API, para la empresa que vende los vehículos.
+
+- **Inicio de sesión** con token de acceso de 30 min guardado en `sessionStorage` (`core/sesion.js`). Se renueva solo hasta un tope de 8 h y se borra al cerrar la pestaña o la sesión. El logout revoca el token en el servidor.
+- **Vistas por rol.** La interfaz solo oculta opciones; quien autoriza es la API.
+  - **Administrador:** Resumen (métricas reales), Inventario (alta comercial de unidades que copia comandos y demos de fábrica, edición y comandos permitidos), Modelos, Clientes, Asignaciones y Bitácora de auditoría.
+  - **Comprador:** Mis vehículos, con su consentimiento de soporte temporal.
+- **Seguridad del navegador:**
+  - Content-Security-Policy sin scripts en línea.
+  - Todo el contenido del servidor se inserta con `textContent`, nunca con `innerHTML`.
+  - Sin cookies; el token solo viaja en la cabecera `Authorization`.
+  - `core/api.js` (`auth: 'auto'`) adjunta el token si hay sesión. Si la API responde 401, descarta la sesión y reintenta sin token, de modo que un token vencido nunca bloquea CONTROL ni DETENER en la unidad de exhibición.
+- **Accesibilidad:**
+  - Pestañas WAI-ARIA con flechas, Inicio y Fin; la pestaña activa se recuerda en la URL (`#inventario`).
+  - Diálogos nativos `<dialog>` que devuelven el foco al cerrar.
+  - Estados de carga, vacío y error anunciados con `aria-live`.
+  - Estados con texto y forma, no solo color.
+  - Avisos flotantes que no desplazan la página.
+- **Pantallas pequeñas:** debajo de 760 px cada fila de tabla es una tarjeta con sus etiquetas, sin desplazamiento horizontal.
+
+**Probar en local contra una API local** (la CORS de la API permite `http://127.0.0.1:3000`):
+
+```powershell
+python -m http.server 3000 --bind 127.0.0.1
+```
+
+Luego abre `http://127.0.0.1:3000/administracion.html?api=http://127.0.0.1:8010`. El parámetro `?api=` solo se acepta en `localhost`/`127.0.0.1` y solo con hosts locales; en GitHub Pages siempre se usa la API de producción. Si el navegador recibe los `.js` como `text/plain` (pasa con el `http.server` de Python en algunos Windows), usa la configuración `control-iot-con-api-local` de `.claude/launch.json`, que fuerza el tipo correcto.
+
 ## 👤 Créditos
 
 - **Proyecto:** Carrito Jesus · Control de Vehículo IoT

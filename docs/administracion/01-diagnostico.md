@@ -251,13 +251,37 @@ Códigos: 200/201; 400 regla de negocio mal formada; 401 sin token o expirado; 4
 
 ---
 
-## 7. Plan de migración (Etapa 2, aún no ejecutado)
+## 7. Migración (Etapa 2): ensayada en prueba, pendiente en producción
 
-1. **Respaldo verificable**: snapshot manual de RDS desde la consola + `mysqldump --single-transaction --routines --triggers` desde la EC2; verificar restaurando en una BD `vehiculo_iot_prueba` y comparando conteos.
-2. Scripts versionados en `vehiculo_iot_api/migrations/`: `V001__usuarios_roles.up.sql`/`.down.sql`, `V002__modelos_y_unidades`, `V003__asignaciones_soporte`, `V004__demos_tipo_propietario`, `V005__sesiones_invitado`, `V006__auditoria`, `V007__historial_actor`, `V008__sp_nuevos`. Cada uno: comprobaciones previas (`information_schema`), solo `ADD COLUMN` nullables/`CREATE TABLE IF NOT EXISTS`, conteos antes/después.
-3. DDL en MySQL hace **commit implícito**: no hay rollback transaccional; el DOWN es "razonable para pruebas" (quita columnas/tablas nuevas) y el respaldo es la reversión real.
-4. Aplicar primero en `vehiculo_iot_prueba`, correr las pruebas, luego en la BD real.
-5. Usuario `migrador` (DDL) separado del usuario de aplicación (`EXECUTE`, `SELECT/INSERT/UPDATE` en tablas nuevas).
+Detalle completo, diagrama ER final y checklist en `vehiculo_iot_api/migrations/README.md`.
+
+- **Respaldo verificable:** `scripts/respaldo_bd.py` (snapshot consistente de solo lectura + manifiesto con conteos, `CHECKSUM TABLE` y SHA-256) y `scripts/restaurar_bd.py` (restaura en una base **nueva** y lo verifica). Restaurado en `vehiculo_iot_prueba`: conteos, checksums y las 21 rutinas idénticas byte a byte. La verificación detectó y corrigió un fallo del propio script de respaldo, que omitía las columnas `DEFAULT CURRENT_TIMESTAMP`.
+- **8 migraciones UP/DOWN** (`V001`–`V008`) aplicadas con `scripts/migrar.py`: control de versiones en `schema_migraciones`, condiciones `@requiere`/`@comprobar`, conteos antes/después y sesión estricta. Producción exige `--confirmar-produccion` y un respaldo de menos de 6 h.
+- **Pruebas:** `scripts/verificar_esquema.py` → 38/38 (los 21 SP siguen funcionando; cada restricción nueva rechaza lo indebido). Ciclo `subir → bajar a V000 → subir → bajar a V004 → subir` sin pérdidas; tras bajar todo, las 6 tablas quedan idénticas a producción. La API actual funciona contra la base migrada.
+- **R15 corregido en la API:** cada conexión usa `sql_mode` estricto y `time_zone` UTC (`app/db/connection.py`). Sin eso, un valor inválido de `ENUM` se guardaba como `''`; el verificador lo detectó.
+- **R16 (parcial):** Pydantic limita `duracion_ms` y `pausa_ms` a 10 000 ms, igual que los CHECK de V004.
+- **Privilegios mínimos:** propuesta en `vehiculo_iot_api/docs/privilegios_rds.sql` (`vehiculo_app` sin DDL ni DELETE; `vehiculo_migrador` con DDL solo sobre estas bases). No se ha aplicado.
+- **DDL = commit implícito:** no hay rollback transaccional. En producción no se usan los DOWN: se revierte con el snapshot de RDS o restaurando el respaldo en una base nueva y cambiando `DB_NAME`.
+
+## 7b. Etapas 3–4 (backend): autenticación y autorización — hechas, sin desplegar
+
+Detalle en `vehiculo_iot_api/docs/autenticacion.md`.
+
+- 18 endpoints nuevos (`/api/auth/*`, `/api/admin/*`, `/api/mis-vehiculos`) con capas rutas → servicios → repositorios y SQL parametrizado.
+- Las 27 rutas previas, protegidas con la regla única `evaluar()`: el CRUD solo para admin; CONTROL y MONITOREO según la propiedad. La unidad 1 (exhibición, sin comprador) sigue funcionando sin token mientras `AUTH_OBLIGATORIA=false`, así 4.1/4.2 no se rompen.
+- Pruebas: 63 unitarias (26 nuevas de autorización, verificadas con una mutación) y 39 casos de punta a punta contra MySQL de prueba.
+- Pendiente: WSS autenticado (Etapa 8) y frontend con login (Etapa 5).
+
+## 7c. Etapa 5 (frontend ADMINISTRACIÓN) — hecha y probada en local, sin publicar
+
+- `administracion.html` con login, Resumen, Inventario, Modelos, Clientes, Asignaciones, Bitácora y Mis vehículos (comprador). Detalle en el README del frontend.
+- Backend complementario: `/api/admin/modelos`, `/api/admin/unidades` (alta que copia comandos y demos de fábrica) y `/api/admin/comandos/{id}` (permisos). 64 pruebas unitarias.
+- Probada en el navegador contra la API local con `vehiculo_iot_prueba`: login, sesión inválida tras reiniciar la API, alta de la unidad 3 (13 comandos y 1 demo copiados), tope de comando, asignación, bitácora, logout que descarta los datos, vista de comprador con soporte solo por teclado, y vista a 375 px sin desplazamiento horizontal.
+- Fallos encontrados en esa prueba y corregidos:
+  - una ruta que tapaba un módulo (500);
+  - avisos que desplazaban la página;
+  - "DETENER" falso en unidades sin historial;
+  - el formulario de edición borraba la descripción.
 
 ## 8. Orden de implementación
 

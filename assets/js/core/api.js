@@ -1,4 +1,5 @@
 import { API_BASE, REQUEST_TIMEOUT_MS } from './config.js';
+import { descartarSesion, tokenActual } from './sesion.js';
 
 export class ApiError extends Error {
   constructor(message, { status = 0, detail = null, kind = 'api' } = {}) {
@@ -37,7 +38,35 @@ function throwIfRequestWasAborted(timedOut, parentSignal) {
   if (parentSignal?.aborted) throw new ApiError('La solicitud fue cancelada.', { kind: 'abort' });
 }
 
-export async function request(path, { method = 'GET', signal: parentSignal } = {}) {
+/**
+ * Petición JSON a la API.
+ * @param {string} path
+ * @param {object} [opciones]
+ * @param {string} [opciones.method='GET']
+ * @param {AbortSignal} [opciones.signal]
+ * @param {object} [opciones.body] se envía como JSON
+ * @param {'auto'|boolean} [opciones.auth='auto'] auto: token si hay sesión y, ante 401, se descarta la
+ *   sesión y se reintenta UNA vez sin token (CONTROL/MONITOREO de la unidad de exhibición siguen
+ *   funcionando aunque el token haya caducado). true: exige sesión. false: nunca envía token.
+ * @param {string} [opciones.token] token explícito (logout)
+ */
+export async function request(path, { method = 'GET', signal, body, auth = 'auto', token } = {}) {
+  const usado = token ?? (auth === false ? null : tokenActual());
+  if (auth === true && !usado) {
+    throw new ApiError('Tu sesión terminó. Inicia sesión de nuevo.', { status: 401, kind: 'http' });
+  }
+  try {
+    return await requestUnaVez(path, { method, signal, body, token: usado });
+  } catch (error) {
+    if (error?.status === 401 && usado && !token) {
+      descartarSesion('rechazada');
+      if (auth === 'auto') return requestUnaVez(path, { method, signal, body, token: null });
+    }
+    throw error;
+  }
+}
+
+async function requestUnaVez(path, { method = 'GET', signal: parentSignal, body, token } = {}) {
   const controller = new AbortController();
   let timedOut = false;
   const timer = setTimeout(() => {
@@ -57,6 +86,11 @@ export async function request(path, { method = 'GET', signal: parentSignal } = {
       signal: controller.signal
     };
     if (method.toUpperCase() === 'GET') options.cache = 'no-store';
+    if (body !== undefined) {
+      options.headers['Content-Type'] = 'application/json';
+      options.body = JSON.stringify(body);
+    }
+    if (token) options.headers.Authorization = `Bearer ${token}`;
 
     let response;
     try { response = await fetch(`${API_BASE}${path}`, options); }
@@ -80,6 +114,7 @@ export async function request(path, { method = 'GET', signal: parentSignal } = {
       });
     }
 
+    if (response.status === 204) return null; // éxito sin cuerpo (logout, revocar soporte…)
     const parsed = await parseJsonTolerant(response);
     throwIfRequestWasAborted(timedOut, parentSignal);
     if (!parsed.parsed) {

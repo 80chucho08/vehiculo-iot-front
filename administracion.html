@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es" data-tema="hielo">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Solo recursos propios y la API; sin scripts en línea. connect-src incluye la API local solo para pruebas. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://vehiculo-iot-itp.duckdns.org wss://vehiculo-iot-itp.duckdns.org http://127.0.0.1:8010 http://localhost:8010; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="Carrito Jesus · administración: modelos, unidades, clientes, asignaciones y bitácora de auditoría">
+  <title>Carrito Jesus · Administración</title>
+  <meta name="theme-color" content="#1E2028">
+  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+  <link rel="preload" href="assets/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/administracion.css">
+  <script type="module" src="assets/js/core/tema.js"></script>
+  <script type="module" src="assets/js/admin/main.js"></script>
+</head>
+<body>
+  <svg class="svg-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="logo-marca" viewBox="0 0 48 48"><rect x="2" y="2" width="44" height="44" rx="14" fill="currentColor"/><text class="logo-texto" x="24" y="31.5" text-anchor="middle" font-size="19">CJ</text></symbol>
+    <symbol id="i-wss" viewBox="0 0 24 24"><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 15.8a5 5 0 0 1 7 0"/><path d="M12 19.5h.01"/><path d="M2 9a14.5 14.5 0 0 1 20 0"/></symbol>
+    <symbol id="i-servidor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
+    <symbol id="i-bd" viewBox="0 0 24 24"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v13c0 1.7 3.6 3 8 3s8-1.3 8-3v-13"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
+    <symbol id="i-usuario" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-candado" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  </svg>
+  <main class="admin-app">
+    <header class="app-header panel">
+      <div class="brand"><svg class="brand-logo" role="img" aria-label="Carrito Jesus"><use href="#logo-marca"/></svg><div><h1 id="app-name">Administración</h1><p id="admin-subtitulo">Empresa de vehículos IoT</p></div></div>
+      <section class="health" aria-label="Estado de servicios">
+        <article class="status-card" data-estado="neutro" id="ws-status" title="WebSocket WSS: esta página no abre sesión WSS">
+          <span class="status-icon" aria-hidden="true"><svg class="icono"><use href="#i-wss"/></svg></span>
+          <div><h2><span class="label-larga">WebSocket WSS</span><span class="label-corta" aria-hidden="true">WSS</span></h2><p>No se usa aquí</p></div>
+          <span class="status-pulse" aria-hidden="true"></span>
+        </article>
+        <article class="status-card" data-estado="cargando" id="api-status" title="Servidor AWS · API FastAPI">
+          <span class="status-icon" aria-hidden="true"><svg class="icono"><use href="#i-servidor"/></svg></span>
+          <div><h2><span class="label-larga">Servidor AWS · API</span><span class="label-corta" aria-hidden="true">API</span></h2><p>Comprobando</p></div>
+          <span class="status-pulse" aria-hidden="true"></span>
+        </article>
+        <article class="status-card" data-estado="cargando" id="db-status" title="Amazon RDS">
+          <span class="status-icon" aria-hidden="true"><svg class="icono"><use href="#i-bd"/></svg></span>
+          <div><h2><span class="label-larga">Amazon RDS</span><span class="label-corta" aria-hidden="true">RDS</span></h2><p>Sin verificar</p></div>
+          <span class="status-pulse" aria-hidden="true"></span>
+        </article>
+      </section>
+      <div class="header-actions"><nav class="app-nav" data-nav aria-label="Secciones"><a class="nav-link" href="index.html">Control</a></nav></div>
+    </header>
+
+    <p class="admin-aviso" id="admin-aviso" role="status" aria-live="polite" hidden></p>
+
+    <!-- Sin sesión -->
+    <section class="panel admin-login" id="vista-login" aria-labelledby="login-titulo" hidden>
+      <h2 id="login-titulo"><svg class="icono" aria-hidden="true"><use href="#i-candado"/></svg>Iniciar sesión</h2>
+      <p class="admin-sub">Administradores y compradores. Los invitados usan el catálogo público (próximamente).</p>
+      <form id="login-form" class="admin-form" novalidate>
+        <div class="form-fila"><label for="login-email">Correo</label><input id="login-email" name="email" type="email" autocomplete="username" required maxlength="120" inputmode="email"></div>
+        <div class="form-fila"><label for="login-password">Contraseña</label><input id="login-password" name="password" type="password" autocomplete="current-password" required maxlength="128"></div>
+        <p class="form-error" id="login-error" role="alert" hidden></p>
+        <div class="form-acciones"><button class="tecla tecla-acento" type="submit" id="login-enviar">Entrar</button></div>
+      </form>
+      <p class="admin-nota">La sesión dura 30 minutos y se renueva sola mientras uses la página, hasta 8 horas. Se cierra al cerrar la pestaña.</p>
+    </section>
+
+    <!-- Con sesión -->
+    <section class="panel admin-sesion" id="vista-sesion" aria-label="Sesión" hidden>
+      <svg class="icono" aria-hidden="true"><use href="#i-usuario"/></svg>
+      <div class="sesion-datos"><p id="sesion-nombre"></p><p class="admin-sub" id="sesion-detalle"></p></div>
+      <button class="tecla tecla-chica" type="button" id="cambiar-password">Cambiar contraseña</button>
+      <button class="tecla tecla-chica" type="button" id="cerrar-sesion">Cerrar sesión</button>
+    </section>
+
+    <section class="panel admin-contenido" id="vista-admin" aria-label="Administración" hidden>
+      <div class="pestanas" role="tablist" aria-label="Secciones de administración" id="pestanas">
+        <button role="tab" type="button" id="tab-resumen" aria-controls="panel-resumen" data-seccion="resumen">Resumen</button>
+        <button role="tab" type="button" id="tab-inventario" aria-controls="panel-inventario" data-seccion="inventario">Inventario</button>
+        <button role="tab" type="button" id="tab-modelos" aria-controls="panel-modelos" data-seccion="modelos">Modelos</button>
+        <button role="tab" type="button" id="tab-clientes" aria-controls="panel-clientes" data-seccion="clientes">Clientes</button>
+        <button role="tab" type="button" id="tab-asignaciones" aria-controls="panel-asignaciones" data-seccion="asignaciones">Asignaciones</button>
+        <button role="tab" type="button" id="tab-bitacora" aria-controls="panel-bitacora" data-seccion="bitacora">Bitácora</button>
+      </div>
+      <div role="tabpanel" id="panel-resumen" aria-labelledby="tab-resumen" tabindex="0" hidden></div>
+      <div role="tabpanel" id="panel-inventario" aria-labelledby="tab-inventario" tabindex="0" hidden></div>
+      <div role="tabpanel" id="panel-modelos" aria-labelledby="tab-modelos" tabindex="0" hidden></div>
+      <div role="tabpanel" id="panel-clientes" aria-labelledby="tab-clientes" tabindex="0" hidden></div>
+      <div role="tabpanel" id="panel-asignaciones" aria-labelledby="tab-asignaciones" tabindex="0" hidden></div>
+      <div role="tabpanel" id="panel-bitacora" aria-labelledby="tab-bitacora" tabindex="0" hidden></div>
+    </section>
+
+    <section class="panel admin-contenido" id="vista-comprador" aria-labelledby="comprador-titulo" hidden>
+      <h2 id="comprador-titulo" class="admin-h2">Mis vehículos</h2>
+      <div id="panel-mis-vehiculos"></div>
+    </section>
+
+    <footer class="app-credits" id="app-credits"></footer>
+  </main>
+</body>
+</html>

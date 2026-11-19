@@ -1,4 +1,15 @@
-export const API_BASE = 'https://vehiculo-iot-itp.duckdns.org';
+const API_PRODUCCION = 'https://vehiculo-iot-itp.duckdns.org';
+// Solo para pruebas locales: en localhost/127.0.0.1 se puede apuntar a una API local con
+// ?api=http://127.0.0.1:8010 (únicamente hosts locales). En GitHub Pages siempre se usa producción.
+function apiBase() {
+  try {
+    const local = ['localhost', '127.0.0.1'].includes(location.hostname);
+    const pedida = local ? new URLSearchParams(location.search).get('api') : null;
+    if (pedida && /^http:\/\/(127\.0\.0\.1|localhost):\d{2,5}$/.test(pedida)) return pedida;
+  } catch { /* sin location (pruebas en Node) */ }
+  return API_PRODUCCION;
+}
+export const API_BASE = apiBase();
 export const APP_NAME = 'Carrito Jesus';
 export const AUTOR_NOMBRE = 'Navarro Carbajal Jesus Alfonso';
 export const MATRICULA = '22200964';
@@ -8,10 +19,35 @@ export const ANIO = 2026;
 export const PAGINAS = Object.freeze([
   Object.freeze({ id: 'control', href: 'index.html', etiqueta: 'Control', icono: 'control' }),
   Object.freeze({ id: 'monitoreo', href: 'monitoreo.html', etiqueta: 'Monitoreo', icono: 'monitoreo' }),
-  Object.freeze({ id: 'eventos', href: 'eventos.html', etiqueta: 'Eventos', icono: 'eventos' })
+  Object.freeze({ id: 'eventos', href: 'eventos.html', etiqueta: 'Eventos', icono: 'eventos' }),
+  Object.freeze({ id: 'administracion', href: 'administracion.html', etiqueta: 'Administración', icono: 'administracion' })
 ]);
+
+// ===== ADMINISTRACIÓN (4.3) · rutas verificadas en /openapi.json de la API 1.1.0 =====
+export const AUTH_ROUTES = Object.freeze({
+  login: '/api/auth/login', renovar: '/api/auth/renovar', logout: '/api/auth/logout',
+  yo: '/api/auth/yo', cambiarPassword: '/api/auth/cambiar-password'
+});
+export const ADMIN_ROUTES = Object.freeze({
+  dashboard: '/api/admin/dashboard',
+  inventario: '/api/admin/inventario',
+  modelos: '/api/admin/modelos', modelo: (id) => `/api/admin/modelos/${encodeURIComponent(id)}`,
+  unidades: '/api/admin/unidades', unidad: (id) => `/api/admin/unidades/${encodeURIComponent(id)}`,
+  comandosUnidad: (id) => `/api/vehiculos/${encodeURIComponent(id)}/comandos`,
+  permisosComando: (id) => `/api/admin/comandos/${encodeURIComponent(id)}`,
+  usuarios: '/api/admin/usuarios', usuario: (id) => `/api/admin/usuarios/${encodeURIComponent(id)}`,
+  passwordUsuario: (id) => `/api/admin/usuarios/${encodeURIComponent(id)}/password`,
+  asignaciones: '/api/admin/asignaciones',
+  finalizarAsignacion: (id) => `/api/admin/asignaciones/${encodeURIComponent(id)}/finalizar`,
+  auditoria: '/api/admin/auditoria',
+  misVehiculos: '/api/mis-vehiculos',
+  soporte: (id) => `/api/mis-vehiculos/${encodeURIComponent(id)}/soporte`
+});
+// Sesión: el token dura 30 min; se renueva cuando faltan RENOVAR_ANTES_MS (tope absoluto 8 h, lo impone la API).
+export const SESION_CLAVE = 'ciot-sesion';
+export const RENOVAR_ANTES_MS = 5 * 60 * 1000;
 export const VEHICLE_ID = 1;
-export const WS_URL = `${API_BASE.replace(/^https:/, 'wss:')}/ws/vehiculos/${VEHICLE_ID}`;
+export const WS_URL = `${API_BASE.replace(/^http/, 'ws')}/ws/vehiculos/${VEHICLE_ID}`; // https→wss, http→ws (local)
 // Métodos de detener y demos deben CONFIRMAR EN SWAGGER.
 export const ROUTES = Object.freeze({
   apiHealth: '/', dbHealth: '/health/db',
