@@ -20,6 +20,7 @@ export const PAGINAS = Object.freeze([
   Object.freeze({ id: 'control', href: 'index.html', etiqueta: 'Control', icono: 'control' }),
   Object.freeze({ id: 'monitoreo', href: 'monitoreo.html', etiqueta: 'Monitoreo', icono: 'monitoreo' }),
   Object.freeze({ id: 'eventos', href: 'eventos.html', etiqueta: 'Eventos', icono: 'eventos' }),
+  Object.freeze({ id: 'catalogo', href: 'catalogo.html', etiqueta: 'Catálogo', icono: 'catalogo' }),
   Object.freeze({ id: 'administracion', href: 'administracion.html', etiqueta: 'Administración', icono: 'administracion' })
 ]);
 
@@ -33,6 +34,7 @@ export const ADMIN_ROUTES = Object.freeze({
   inventario: '/api/admin/inventario',
   modelos: '/api/admin/modelos', modelo: (id) => `/api/admin/modelos/${encodeURIComponent(id)}`,
   unidades: '/api/admin/unidades', unidad: (id) => `/api/admin/unidades/${encodeURIComponent(id)}`,
+  tokenDispositivo: (id) => `/api/admin/unidades/${encodeURIComponent(id)}/token-dispositivo`,
   comandosUnidad: (id) => `/api/vehiculos/${encodeURIComponent(id)}/comandos`,
   permisosComando: (id) => `/api/admin/comandos/${encodeURIComponent(id)}`,
   usuarios: '/api/admin/usuarios', usuario: (id) => `/api/admin/usuarios/${encodeURIComponent(id)}`,
@@ -45,8 +47,26 @@ export const ADMIN_ROUTES = Object.freeze({
 });
 // Sesión: el token dura 30 min; se renueva cuando faltan RENOVAR_ANTES_MS (tope absoluto 8 h, lo impone la API).
 export const SESION_CLAVE = 'ciot-sesion';
+// Etapas 7-8
+export const WS_TICKET_ROUTE = '/api/ws/ticket';
+export const INVITADO_ROUTES = Object.freeze({
+  catalogo: '/api/catalogo', reservar: '/api/invitado/sesiones', sesion: '/api/invitado/sesion'
+});
 export const RENOVAR_ANTES_MS = 5 * 60 * 1000;
-export const VEHICLE_ID = 1;
+// Unidad que operan CONTROL, MONITOREO y EVENTOS: ?vehiculo=N en la URL (entero positivo) o, por
+// omisión, la unidad de exhibición (1). Elegirla en el selector solo cambia lo que se PIDE: la API
+// decide si el usuario puede verla u operarla (404 si no es suya).
+export const VEHICULO_POR_OMISION = 1;
+function vehiculoElegido() {
+  try {
+    const texto = new URLSearchParams(location.search).get('vehiculo');
+    if (texto && /^[1-9]\d{0,8}$/.test(texto)) return Number(texto);
+  } catch { /* sin location (pruebas en Node) */ }
+  return VEHICULO_POR_OMISION;
+}
+export const VEHICLE_ID = vehiculoElegido();
+// Parámetros de la URL que se conservan al navegar entre páginas.
+export const PARAMETROS_PERSISTENTES = Object.freeze(['vehiculo', 'api']);
 export const WS_URL = `${API_BASE.replace(/^http/, 'ws')}/ws/vehiculos/${VEHICLE_ID}`; // https→wss, http→ws (local)
 // Métodos de detener y demos deben CONFIRMAR EN SWAGGER.
 export const ROUTES = Object.freeze({

@@ -98,9 +98,10 @@ export function avisar(texto, tipo = 'ok') {
   if (!region) return;
   region.dataset.tipo = tipo;
   region.textContent = texto;
-  region.hidden = false;
+  // popover="manual": se muestra en la capa superior, por encima de un <dialog> modal abierto.
+  try { if (region.matches(':popover-open')) region.hidePopover(); region.showPopover(); } catch { region.hidden = false; }
   clearTimeout(avisar.t);
-  avisar.t = setTimeout(() => { region.hidden = true; }, tipo === 'error' ? 9000 : 5000);
+  avisar.t = setTimeout(() => { try { region.hidePopover(); } catch { region.hidden = true; } }, tipo === 'error' ? 9000 : 5000);
 }
 
 /**

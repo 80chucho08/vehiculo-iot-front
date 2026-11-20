@@ -51,12 +51,12 @@
       <div class="header-actions"><nav class="app-nav" data-nav aria-label="Secciones"><a class="nav-link" href="index.html">Control</a></nav></div>
     </header>
 
-    <p class="admin-aviso" id="admin-aviso" role="status" aria-live="polite" hidden></p>
+    <p class="admin-aviso" id="admin-aviso" role="status" aria-live="polite" popover="manual"></p>
 
     <!-- Sin sesión -->
     <section class="panel admin-login" id="vista-login" aria-labelledby="login-titulo" hidden>
       <h2 id="login-titulo"><svg class="icono" aria-hidden="true"><use href="#i-candado"/></svg>Iniciar sesión</h2>
-      <p class="admin-sub">Administradores y compradores. Los invitados usan el catálogo público (próximamente).</p>
+      <p class="admin-sub">Administradores y compradores. ¿Quieres probar un vehículo sin cuenta? Entra al <a href="catalogo.html">catálogo</a>.</p>
       <form id="login-form" class="admin-form" novalidate>
         <div class="form-fila"><label for="login-email">Correo</label><input id="login-email" name="email" type="email" autocomplete="username" required maxlength="120" inputmode="email"></div>
         <div class="form-fila"><label for="login-password">Contraseña</label><input id="login-password" name="password" type="password" autocomplete="current-password" required maxlength="128"></div>

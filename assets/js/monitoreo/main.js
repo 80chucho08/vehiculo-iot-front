@@ -6,6 +6,7 @@ import { request } from '../core/api.js';
 import { createWebSocket } from '../core/ws.js';
 import { registerMessageHandler } from '../core/events.js';
 import { montarNavegacion, montarCreditos } from '../core/layout.js';
+import { montarSelectorUnidad } from '../core/selector-unidad.js';
 import { montarIndicadores } from '../core/conectividad.js';
 import { validarEstado, validarItemEstado, validarComandoWss, validarCompletadoWss, validarDemoWss } from '../core/validaciones.js';
 import { etiquetaZona } from '../core/fecha.js';
@@ -15,6 +16,7 @@ import { crearUltimoMovimiento, crearEstadoDemo } from './ultimo-movimiento.js';
 const byId = (id) => document.getElementById(id);
 
 montarNavegacion(document.querySelector('[data-nav]'), 'monitoreo');
+void montarSelectorUnidad(document.querySelector('[data-selector-unidad]'), { compacto: true });
 montarCreditos(byId('app-credits'));
 document.title = `${APP_NAME} · Monitoreo`;
 document.querySelector('.brand-logo').setAttribute('aria-label', APP_NAME);

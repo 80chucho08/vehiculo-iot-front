@@ -2,6 +2,12 @@
 html,body{width:100%;height:100%;height:100dvh;min-width:0;min-height:0;overflow:hidden}
 .control-app{width:100%;height:100dvh;min-width:0;min-height:0;margin:auto;padding:max(var(--esp-2),env(safe-area-inset-top)) max(var(--esp-2),env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(var(--esp-2),env(safe-area-inset-left));display:grid;gap:clamp(4px,1vmin,12px);grid-template-areas:'topbar' 'grua' 'centro' 'garra' 'creditos';grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto minmax(0,1fr) auto;container-type:size}
 .control-app>*{min-width:0;min-height:0}
+/* Prueba de invitado: barra flotante con la cuenta regresiva (no ocupa espacio de la cuadrícula) */
+.invitado-banner{position:fixed;left:50%;bottom:max(var(--esp-3),env(safe-area-inset-bottom));z-index:30;display:flex;align-items:center;gap:var(--esp-3);transform:translateX(-50%);padding:var(--esp-2) var(--esp-2) var(--esp-2) var(--esp-4);border-radius:var(--r-pill);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.invitado-banner[hidden]{display:none}
+.command-nota{grid-column:1 / -1;margin:0;padding:var(--esp-2) var(--esp-3);color:var(--texto-2);font-size:var(--t-chico);text-align:center}
+.invitado-banner[data-estado=aviso]{border-color:var(--aviso);color:var(--aviso)}
+.invitado-banner .tecla{min-height:38px}
 .control-app .app-header{grid-area:topbar;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:'brand actions' 'health health'}
 .control-app .app-credits{grid-area:creditos}
 

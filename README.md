@@ -375,13 +375,23 @@ Tercera aplicación, sobre la misma API, para la empresa que vende los vehículo
   - Avisos flotantes que no desplazan la página.
 - **Pantallas pequeñas:** debajo de 760 px cada fila de tabla es una tarjeta con sus etiquetas, sin desplazamiento horizontal.
 
+### Etapas 6 a 8: unidades, demos privadas, invitados y WSS autenticado
+
+- **Una unidad por URL:** CONTROL, MONITOREO y EVENTOS operan la unidad de `?vehiculo=N` (por omisión, 1, la de exhibición). El **selector de unidad** (en Ajustes de CONTROL y en la barra de MONITOREO y EVENTOS) ofrece las unidades del comprador o el inventario del admin, y la navegación conserva la unidad elegida. Elegir no da permisos: si no es tuya, la API responde 404.
+- **Mis vehículos** (comprador): Controlar, Monitorear, Demos y soporte. El **editor de demos** permite agregar, quitar, editar y reordenar pasos (↑ ↓ ✕, accesible por teclado) y valida en el navegador los mismos topes que la API (modelo, comando, 120 s en total). Las demos privadas aparecen en CONTROL solo para su dueño.
+- **Catálogo** (`catalogo.html`, público): modelos publicados con su unidad de exhibición y disponibilidad. «Probar N minutos» pide confirmar supervisión y zona despejada, reserva la unidad en exclusiva y abre CONTROL en **modo invitado**: cuenta regresiva, «Terminar prueba», solo movimientos, luz y demos de fábrica. Al terminar, por tiempo o al cerrar la página, la API detiene la unidad y el navegador vuelve al catálogo.
+- **WSS autenticado:** `core/ws.js` pide un ticket de un solo uso (`POST /api/ws/ticket`) antes de cada conexión o reconexión; el token de sesión nunca va en la URL. Si la API niega el acceso, el indicador muestra «Sin acceso»; si se revocan los permisos (4403), el canal se cierra y al reconectar la API vuelve a decidir.
+- **Token del ESP8266:** ADMINISTRACIÓN → Inventario → **Token ESP** (se muestra una sola vez).
+
+Despliegue y guion de la prueba por equipos: `vehiculo_iot_api/docs/despliegue_4.3.md`.
+
 **Probar en local contra una API local** (la CORS de la API permite `http://127.0.0.1:3000`):
 
 ```powershell
 python -m http.server 3000 --bind 127.0.0.1
 ```
 
-Luego abre `http://127.0.0.1:3000/administracion.html?api=http://127.0.0.1:8010`. El parámetro `?api=` solo se acepta en `localhost`/`127.0.0.1` y solo con hosts locales; en GitHub Pages siempre se usa la API de producción. Si el navegador recibe los `.js` como `text/plain` (pasa con el `http.server` de Python en algunos Windows), usa la configuración `control-iot-con-api-local` de `.claude/launch.json`, que fuerza el tipo correcto.
+Luego abre `http://127.0.0.1:3000/administracion.html?api=http://127.0.0.1:8010`. El parámetro `?api=` solo se acepta en `localhost`/`127.0.0.1` y solo con hosts locales; en GitHub Pages siempre se usa la API de producción. Si el navegador recibe los `.js` como `text/plain` (pasa con el `http.server` de Python en algunos Windows) o mezcla módulos de versiones distintas por caché, usa `python .claude/servidor_local.py 3000 localhost`: fuerza el tipo MIME correcto y `Cache-Control: no-store`.
 
 ## 👤 Créditos
 

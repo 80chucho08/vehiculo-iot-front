@@ -3,6 +3,7 @@
 import { APP_NAME, VEHICLE_ID } from '../core/config.js';
 import { createWebSocket } from '../core/ws.js';
 import { montarNavegacion, montarCreditos } from '../core/layout.js';
+import { montarSelectorUnidad } from '../core/selector-unidad.js';
 
 const MAX_EVENTOS = 200;
 const byId = (id) => document.getElementById(id);
@@ -19,6 +20,7 @@ let pausado = false;
 let omitidos = 0;
 
 montarNavegacion(document.querySelector('[data-nav]'), 'eventos', { mostrarEtiqueta: true });
+void montarSelectorUnidad(document.querySelector('[data-selector-unidad]'), { compacto: true });
 montarCreditos(byId('app-credits'));
 document.title = `${APP_NAME} · Eventos`;
 document.querySelector('.brand-logo').setAttribute('aria-label', APP_NAME);

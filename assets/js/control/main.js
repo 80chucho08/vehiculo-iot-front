@@ -4,6 +4,8 @@ import { startHealthChecks } from '../core/health.js';
 import { createWebSocket } from '../core/ws.js';
 import { getState, updateState, subscribe } from '../core/state.js';
 import { montarNavegacion, montarCreditos } from '../core/layout.js';
+import { montarSelectorUnidad } from '../core/selector-unidad.js';
+import { esInvitado, montarModoInvitado } from './invitado.js';
 import { byId, setStatusCard, createActionLogger, setVehicleName, setBackendConnectivity, renderCommands, renderDemos, setCommandButtonsState, initControlChrome } from './ui.js';
 import { configureCommands, enviarComando, detener, isMovementInFlight, isSustainedMovementActive, getActiveCommand, alAceptarDetener } from './commands.js';
 import { configureDemos, loadDemos, iniciarDemo, cancelarDemo, completarDemo, finalizarDemo, avisarDemoEstadoDesconocido } from './demo.js';
@@ -19,6 +21,8 @@ if (['localhost', '127.0.0.1', '::1'].includes(location.hostname)) {
 }
 
 montarNavegacion(document.querySelector('[data-nav]'), 'control');
+void montarSelectorUnidad(document.querySelector('[data-selector-unidad]'));
+montarModoInvitado();
 montarCreditos(byId('app-credits'));
 initControlChrome();
 document.title = `${APP_NAME} · Control IoT`;
@@ -89,8 +93,11 @@ async function loadCatalogs() {
   byId('catalog-status').hidden = true;
   try {
     const result = await request(ROUTES.commands);
-    updateState({ commands: Array.isArray(result.comandos) ? result.comandos : [] });
-    renderCommands((code) => enviarComando(code, 'boton'), undefined, { [LUZ_CODIGO]: luz.crearBoton });
+    const comandos = Array.isArray(result.comandos) ? result.comandos : [];
+    // Invitado: solo los comandos habilitados para la prueba (la API rechaza los demás con 403).
+    updateState({ commands: esInvitado() ? comandos.filter((c) => c.permitido_invitado) : comandos });
+    renderCommands((code) => enviarComando(code, 'boton'), undefined, { [LUZ_CODIGO]: luz.crearBoton },
+      esInvitado() ? { nota: 'Prueba de invitado: movimientos de grúa y garra, luz y demos de fábrica.' } : {});
     commandsOK = getState().commands.length > 0;
   } catch (error) { logAction(`No se pudo cargar el catálogo de comandos: ${error.message}`, 'error'); }
   try {

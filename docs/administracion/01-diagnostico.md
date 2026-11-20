@@ -283,6 +283,19 @@ Detalle en `vehiculo_iot_api/docs/autenticacion.md`.
   - "DETENER" falso en unidades sin historial;
   - el formulario de edición borraba la descripción.
 
+## 7d. Etapas 6 a 9 — hechas y probadas en local
+
+Detalle: `vehiculo_iot_api/docs/autenticacion.md` y `vehiculo_iot_api/docs/despliegue_4.3.md`.
+
+- **Etapa 6:** unidad por URL con selector, Mis vehículos con accesos a CONTROL/MONITOREO, editor de demos privadas. Validación física en tres capas (API al guardar y al ejecutar, CHECK de la base, firmware 100–10 000 ms). Privacidad de las demos en REST y en el WSS.
+- **Etapa 7:** catálogo público y reserva exclusiva de la unidad de exhibición (5 min, límite por IP, condiciones de seguridad). DETENER automático al vencer, al terminar o al desconectarse más de 15 s. Mientras hay reserva nadie más opera la unidad, pero cualquiera con acceso puede DETENERLA.
+- **Etapa 8:** WSS con ticket de un solo uso por unidad, revalidación cada 15 s (cierre 4403 al revocar permisos), token del ESP8266 por cabecera y firmware con el id de la unidad configurable.
+- **Etapa 9:**
+  - 94 pruebas unitarias.
+  - E2E con la API real, MySQL y WebSockets reales: autorización 39/39, invitados y WSS 32/32, esquema 38/38.
+  - Regresión de CONTROL anónimo en la unidad 1 y prueba en el navegador del recorrido del invitado.
+- Riesgos cerrados: R1 (dispositivo suplantable), R2, R3, R12-R16; R6 completo. Pendientes documentados: R8 (usuario `admin` de RDS) y R5 (estado en memoria, un solo proceso).
+
 ## 8. Orden de implementación
 
 Corrección R3 (DETENER) y R1 (token de dispositivo) primero, por seguridad física → Etapa 2 (respaldo + migraciones en BD de prueba) → Etapa 3–4 (auth + `puede()` + pruebas de acceso cruzado en `tests/`) → Etapa 5 front Admin → 6 Mis vehículos + editor → 7 Invitado → 8 WSS por unidad → 9 regresión 4.1/4.2. Cada cambio de backend: commit + push → `git pull` en la EC2 → reiniciar el servicio → verificar `/docs`.

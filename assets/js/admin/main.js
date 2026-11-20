@@ -44,7 +44,9 @@ const pestanas = montarPestanas(byId('pestanas'), (seccion) => secciones[seccion
 const fechaCorta = new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 let rolPintado = null;
 
-function pintar(sesion) {
+function pintar(sesionGuardada) {
+  // Una prueba de invitado no es una cuenta: aquí se ve el formulario de inicio de sesión.
+  const sesion = sesionGuardada?.usuario.rol === 'invitado' ? null : sesionGuardada;
   const rol = sesion?.usuario.rol ?? null;
   byId('vista-login').hidden = Boolean(sesion);
   byId('vista-sesion').hidden = !sesion;

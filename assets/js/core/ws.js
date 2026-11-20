@@ -1,4 +1,16 @@
-import { WS_URL } from './config.js';
+import { WS_URL, WS_TICKET_ROUTE, VEHICLE_ID } from './config.js';
+import { request } from './api.js';
+import { tokenActual } from './sesion.js';
+
+// Etapa 8: con sesión se pide un ticket de un solo uso (30 s) para ESTA unidad y se abre
+// ws(s)://…/ws/vehiculos/{id}?ticket=…  El token de sesión nunca va en la URL.
+// Sin sesión se conecta como anónimo: la API decide (transición) y cierra con 4401 si no procede.
+async function urlDeConexion() {
+  if (!tokenActual()) return WS_URL;
+  const r = await request(WS_TICKET_ROUTE, { method: 'POST', body: { id_vehiculo: VEHICLE_ID } });
+  return typeof r?.ticket === 'string' ? `${WS_URL}?ticket=${encodeURIComponent(r.ticket)}` : WS_URL;
+}
+const SIN_ACCESO = new Set([401, 403, 404]);
 import { dispatchMessage } from './events.js';
 
 const CONNECTION_TIMEOUT_MS = 10000;
@@ -14,6 +26,7 @@ export function createWebSocket(context) {
   let attempt = 0;
   let hasOpened = false;
   let justReconnected = false;
+  let preparando = false;
   const setStatus = context.setStatus;
 
   context.consumeReconnection = () => {
@@ -41,8 +54,8 @@ export function createWebSocket(context) {
     retryTimer = setTimeout(() => { retryTimer = null; connect(); }, delay);
   }
 
-  function connect() {
-    if (stopped) return;
+  async function connect() {
+    if (stopped || preparando) return;
     if (navigator.onLine === false) { setStatus('Desconectado', 'error'); return; }
     if (socket?.readyState === WebSocket.OPEN || socket?.readyState === WebSocket.CONNECTING) return;
 
@@ -51,8 +64,28 @@ export function createWebSocket(context) {
     const currentAttempt = ++attempt;
     setStatus(hasOpened || retry ? 'Reconectando' : 'Conectando', 'cargando');
 
+    let url;
+    preparando = true;
+    try { url = await urlDeConexion(); }
+    catch (error) {
+      preparando = false;
+      if (SIN_ACCESO.has(error?.status)) {
+        // Sin permiso para esta unidad: se informa y se reintenta lento (por si se concede después).
+        setStatus('Sin acceso', 'error');
+        context.onAccesoDenegado?.(error);
+        clearTimeout(retryTimer);
+        retryTimer = setTimeout(() => { retryTimer = null; connect(); }, 30000);
+        return;
+      }
+      scheduleRetry();
+      return;
+    }
+    preparando = false;
+    if (stopped || attempt !== currentAttempt) return;
+    if (socket?.readyState === WebSocket.OPEN || socket?.readyState === WebSocket.CONNECTING) return;
+
     let candidate;
-    try { candidate = new WebSocket(WS_URL); }
+    try { candidate = new WebSocket(url); }
     catch { scheduleRetry(); return; }
     socket = candidate;
 
@@ -102,9 +135,11 @@ export function createWebSocket(context) {
       if (socket === candidate && navigator.onLine !== false) setStatus('Reconectando', 'cargando');
     });
 
-    candidate.addEventListener('close', () => {
+    candidate.addEventListener('close', (event) => {
       if (socket !== candidate || currentAttempt !== attempt) return;
       clearConnectionTimers();
+      // 4401 sin credencial · 4403 acceso revocado: el reintento pide un ticket nuevo y la API decide otra vez.
+      if (event.code === 4401 || event.code === 4403) context.onAccesoDenegado?.({ codigo: event.code, motivo: event.reason });
       scheduleRetry();
     });
   }

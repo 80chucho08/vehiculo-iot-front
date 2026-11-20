@@ -3,7 +3,7 @@
 //   Nunca va en localStorage, cookies ni la URL. El rol mostrado es informativo: la API decide los permisos.
 // - Se renueva solo, RENOVAR_ANTES_MS antes de vencer, hasta el tope absoluto que fija la API (8 h).
 // - Si la API responde 401, la sesión local se descarta y se avisa a los suscriptores.
-import { AUTH_ROUTES, RENOVAR_ANTES_MS, SESION_CLAVE } from './config.js';
+import { AUTH_ROUTES, INVITADO_ROUTES, RENOVAR_ANTES_MS, SESION_CLAVE } from './config.js';
 import { request } from './api.js';
 import { parseFechaBackend } from './fecha.js';
 
@@ -28,7 +28,7 @@ function avisar() { const s = obtenerSesion(); for (const fn of oyentes) { try {
 /** Sesión vigente o null. Nunca devuelve un token vencido. */
 export function obtenerSesion() {
   const s = memoria;
-  if (!s || typeof s.token !== 'string' || !Number.isFinite(s.expira) || s.expira <= Date.now() + 5000) return null;
+  if (!s || typeof s.token !== 'string' || !Number.isFinite(s.expira) || s.expira <= Date.now() + 1000) return null;
   return s;
 }
 
@@ -82,6 +82,32 @@ export async function renovar() {
     } finally { renovando = null; }
   })();
   return renovando;
+}
+
+/**
+ * Prueba de invitado (Etapa 7): reserva exclusiva y temporal de una unidad de exhibición. Sin cuenta.
+ * El token no se renueva: vence con la reserva.
+ */
+export async function iniciarPruebaInvitado(idVehiculo) {
+  const r = await request(INVITADO_ROUTES.reservar, {
+    method: 'POST', auth: false, body: { id_vehiculo: idVehiculo, acepto_condiciones: true }
+  });
+  const expira = parseFechaBackend(r?.expira_en)?.getTime();
+  if (typeof r?.access_token !== 'string' || !expira) throw new Error('La API devolvió una reserva con formato inesperado.');
+  escribir({
+    token: r.access_token, expira, absoluto: expira, idVehiculo: r.id_vehiculo,
+    usuario: { id: null, email: '', nombre: 'Invitado', rol: 'invitado' }
+  });
+  avisar();
+  return obtenerSesion();
+}
+
+/** Termina la prueba: la API libera la unidad y la DETIENE. */
+export async function terminarPruebaInvitado() {
+  const token = tokenActual();
+  descartarSesion('fin_prueba');
+  if (!token) return;
+  try { await request(INVITADO_ROUTES.sesion, { method: 'DELETE', token }); } catch { /* vencerá sola */ }
 }
 
 /** Cierra en el servidor (revoca) y localmente. Si la red falla, se descarta igual en el navegador. */

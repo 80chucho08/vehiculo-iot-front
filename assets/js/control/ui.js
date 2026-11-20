@@ -1,6 +1,7 @@
 import { GRUPOS } from '../data/grupos.js';
 import { JOYSTICK_GRUA, JOYSTICK_GARRA } from '../data/joystick-map.js';
 import { getState } from '../core/state.js';
+import { VEHICLE_ID } from '../core/config.js';
 
 export function byId(id) { return document.getElementById(id); }
 export function setStatusCard(id, title, status, state) {
@@ -17,14 +18,15 @@ export function createActionLogger() {
     container.dataset.estado = status;
   };
 }
-export function setVehicleName(name) { byId('vehicle-name').textContent = typeof name === 'string' && name.trim() ? name : 'Vehículo sin identificar'; }
+export function setVehicleName(name) { byId('vehicle-name').textContent = `${typeof name === 'string' && name.trim() ? name : 'Vehículo sin identificar'} · ID ${VEHICLE_ID}`; }
 export function setBackendConnectivity(value) {
-  const node = byId('backend-connectivity'); node.textContent = `Unidad ID 1 · vehículo ${value ? 'verificado' : 'sin verificar'}`;
+  const node = byId('backend-connectivity'); node.textContent = `Unidad ID ${VEHICLE_ID} · vehículo ${value ? 'verificado' : 'sin verificar'}`;
   node.dataset.estado = value ? 'ok' : 'error';
 }
 
 // especiales: { [codigo]: (command, onClick) => HTMLElement } para controles con presentación propia (p. ej. la luz).
-export function renderCommands(onClick, stopCommand = () => {}, especiales = {}) {
+// opciones.nota: si se indica, sustituye las casillas vacías de relleno (p. ej. prueba de invitado).
+export function renderCommands(onClick, stopCommand = () => {}, especiales = {}, opciones = {}) {
   const root = byId('command-groups'); root.replaceChildren();
   const commands = getState().commands;
   if (!commands.length) {
@@ -57,7 +59,11 @@ export function renderCommands(onClick, stopCommand = () => {}, especiales = {})
     if (buttons.children.length) { section.append(heading, buttons); root.append(section); }
   }
   const rendered = root.querySelectorAll('.command-button').length;
-  for (let index = rendered; index < 4; index += 1) { const skeleton = document.createElement('button'); skeleton.type = 'button'; skeleton.className = 'command-button skeleton'; skeleton.dataset.estadoOriginal = 'error'; skeleton.disabled = true; skeleton.setAttribute('aria-label', 'Comando no disponible'); skeleton.textContent = ' '; root.append(skeleton); }
+  if (opciones.nota && rendered < 4) {
+    const nota = document.createElement('p'); nota.className = 'command-nota'; nota.textContent = opciones.nota;
+    root.append(nota);
+  }
+  for (let index = rendered; index < 4 && !opciones.nota; index += 1) { const skeleton = document.createElement('button'); skeleton.type = 'button'; skeleton.className = 'command-button skeleton'; skeleton.dataset.estadoOriginal = 'error'; skeleton.disabled = true; skeleton.setAttribute('aria-label', 'Comando no disponible'); skeleton.textContent = ' '; root.append(skeleton); }
 
   const missingFor = (map) => Object.entries(map)
     .filter(([, code]) => !commands.some((item) => Number(item.codigo) === code && item.activo))

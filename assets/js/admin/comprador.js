@@ -1,7 +1,9 @@
-// Vista del comprador: sus unidades (GET /api/mis-vehiculos, el id sale del token) y el consentimiento
-// de soporte. El control de su unidad desde CONTROL/MONITOREO llega en la Etapa 6.
+// Vista del comprador: sus unidades (GET /api/mis-vehiculos, el id sale del token), accesos a
+// CONTROL/MONITOREO de cada una (?vehiculo=N), editor de demos privadas y consentimiento de soporte.
 import { ADMIN_ROUTES } from '../core/config.js';
 import { request } from '../core/api.js';
+import { conParametros } from '../core/layout.js';
+import { abrirDemosDeUnidad } from './editor-demos.js';
 import { abrirFormulario, avisar, crearTabla, el, etiqueta, fechaHora, textoError } from './ui.js';
 
 export function crearMisVehiculos(contenedor) {
@@ -15,9 +17,13 @@ export function crearMisVehiculos(contenedor) {
       { titulo: 'Soporte de la empresa', celda: (v) => (v.soporte_hasta
         ? el('span', { class: 'celda-doble' }, etiqueta('Autorizado', 'aviso'), el('small', {}, 'hasta ', fechaHora(v.soporte_hasta)))
         : etiqueta('No autorizado', 'neutro')) },
-      { titulo: 'Acciones', clase: 'col-acciones', celda: (v) => (v.soporte_hasta
-        ? el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => revocar(v) }, 'Revocar soporte')
-        : el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => autorizar(v) }, 'Autorizar soporte')) }
+      { titulo: 'Acciones', clase: 'col-acciones', celda: (v) => el('span', { class: 'acciones' },
+        el('a', { class: 'tecla tecla-chica tecla-acento', href: conParametros('index.html', { vehiculo: v.id_vehiculo }), 'aria-label': `Controlar ${v.nombre}` }, 'Controlar'),
+        el('a', { class: 'tecla tecla-chica', href: conParametros('monitoreo.html', { vehiculo: v.id_vehiculo }), 'aria-label': `Monitorear ${v.nombre}` }, 'Monitorear'),
+        el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => abrirDemosDeUnidad(v), 'aria-label': `Demos de ${v.nombre}` }, 'Demos'),
+        v.soporte_hasta
+          ? el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => revocar(v) }, 'Revocar soporte')
+          : el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => autorizar(v) }, 'Autorizar soporte')) }
     ]
   });
   contenedor.append(

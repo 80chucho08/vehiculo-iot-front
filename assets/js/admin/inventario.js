@@ -23,9 +23,35 @@ export function crearInventario(contenedor) {
       { titulo: 'Dispositivo', celda: (u) => (u.dispositivo_conectado ? etiqueta('En línea', 'ok') : etiqueta('Sin conexión', 'neutro')) },
       { titulo: 'Acciones', clase: 'col-acciones', celda: (u) => el('span', { class: 'acciones' },
         el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => editar(u), 'aria-label': `Editar ${u.nombre}` }, 'Editar'),
-        el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => comandos(u), 'aria-label': `Comandos de ${u.nombre}` }, 'Comandos')) }
+        el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => comandos(u), 'aria-label': `Comandos de ${u.nombre}` }, 'Comandos'),
+        el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => tokenDispositivo(u), 'aria-label': `Token del ESP8266 de ${u.nombre}` }, 'Token ESP')) }
     ]
   });
+
+  // Token del ESP8266 (Etapa 8): se genera aquí y se muestra UNA vez; la API solo guarda su SHA-256.
+  function tokenDispositivo(u) {
+    abrirFormulario({
+      titulo: `Token del ESP8266 · ${u.nombre}`,
+      descripcion: 'Genera un token nuevo para el firmware de esta unidad. Si ya había uno, el dispositivo que lo usa dejará de conectarse hasta que actualices credenciales_dispositivo.h.',
+      campos: [{ nombre: 'confirmo', tipo: 'checkbox', valor: false, etiqueta: 'Entiendo que el token anterior deja de servir.' }],
+      textoEnviar: 'Generar token', peligro: true,
+      enviar: async ({ confirmo }) => {
+        if (!confirmo) throw new Error('Marca la confirmación para generar el token.');
+        const r = await request(ADMIN_ROUTES.tokenDispositivo(u.id_vehiculo), { method: 'POST', auth: true });
+        const campo = el('input', { type: 'text', readonly: true, class: 'token-campo', 'aria-label': 'Token del dispositivo' });
+        campo.value = r.token;
+        abrirPanel({ titulo: 'Copia el token ahora', contenido: el('div', { class: 'admin-form' },
+          el('p', { class: 'admin-sub' }, 'No se volverá a mostrar. En el firmware, pon en credenciales_dispositivo.h:'),
+          el('code', { class: 'token-bloque' }, `#define DISPOSITIVO_ID_VEHICULO ${u.id_vehiculo}`),
+          campo,
+          el('button', { type: 'button', class: 'tecla tecla-chica', onclick: async (e) => {
+            campo.select();
+            try { await navigator.clipboard.writeText(r.token); e.target.textContent = 'Copiado ✓'; } catch { e.target.textContent = 'Selecciónalo y cópialo'; }
+          } }, 'Copiar token')) });
+        campo.select();
+      }
+    });
+  }
   const nueva = el('button', { type: 'button', class: 'tecla tecla-acento tecla-chica', onclick: () => alta() }, 'Nueva unidad');
   contenedor.append(
     el('div', { class: 'seccion-cabecera' }, el('h2', { class: 'admin-h2' }, 'Inventario de unidades'), nueva),
