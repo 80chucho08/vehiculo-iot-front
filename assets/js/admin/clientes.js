@@ -5,7 +5,8 @@ import { obtenerSesion } from '../core/sesion.js';
 import { abrirFormulario, avisar, crearPaginacion, crearTabla, el, etiqueta, fechaHora, textoError } from './ui.js';
 
 const POR_PAGINA = 20;
-const ROLES = [['usuario', 'Comprador'], ['admin', 'Administrador']];
+const ROLES = [['usuario', 'Comprador'], ['invitado', 'Invitado (solo exhibición)'], ['admin', 'Administrador']];
+const NOMBRE_ROL = { usuario: 'Comprador', invitado: 'Invitado', admin: 'Administrador' };
 
 export function crearClientes(contenedor) {
   let cargado = false;
@@ -24,7 +25,7 @@ export function crearClientes(contenedor) {
     titulo: 'Clientes y administradores',
     columnas: [
       { titulo: 'Cuenta', celda: (u) => el('span', { class: 'celda-doble' }, el('strong', {}, u.nombre), el('small', {}, `${u.email} · ID ${u.id_usuario}`)) },
-      { titulo: 'Rol', celda: (u) => etiqueta(u.rol === 'admin' ? 'Administrador' : 'Comprador', u.rol === 'admin' ? 'acento' : 'neutro') },
+      { titulo: 'Rol', celda: (u) => etiqueta(NOMBRE_ROL[u.rol] || u.rol, u.rol === 'admin' ? 'acento' : (u.rol === 'invitado' ? 'aviso' : 'neutro')) },
       { titulo: 'Estado', celda: (u) => (u.activo ? etiqueta('Activo', 'ok') : etiqueta('Inactivo', 'error')) },
       { titulo: 'Último acceso', celda: (u) => (u.ultimo_acceso ? fechaHora(u.ultimo_acceso) : el('span', { class: 'texto-tenue' }, 'Nunca')) },
       { titulo: 'Acciones', clase: 'col-acciones', celda: (u) => el('span', { class: 'acciones' },

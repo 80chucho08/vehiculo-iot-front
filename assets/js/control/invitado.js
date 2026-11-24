@@ -6,7 +6,8 @@ import { registerMessageHandler } from '../core/events.js';
 import { conParametros } from '../core/layout.js';
 import { alCambiarSesion, descartarSesion, obtenerSesion, terminarPruebaInvitado } from '../core/sesion.js';
 
-export const esInvitado = () => obtenerSesion()?.usuario.rol === 'invitado';
+// Prueba anónima del catálogo ('invitado') o cuenta de invitado ('visitante'): mismos comandos permitidos.
+export const esInvitado = () => ['invitado', 'visitante'].includes(obtenerSesion()?.usuario.rol);
 
 function salir(motivo) {
   location.assign(conParametros('catalogo.html', { fin: motivo }));

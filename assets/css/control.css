@@ -227,3 +227,6 @@ html,body{width:100%;height:100%;height:100dvh;min-width:0;min-height:0;overflow
   .command-button,.joystick-control,.luz-track,.demo-card{border-color:var(--borde-fuerte)}
   .joystick-control::before{border-color:var(--acento)}
 }
+/* V009 · «Mis comandos»: comandos propios del comprador, distinguidos con borde de acento. */
+.command-button.command-propio{border-style:dashed;border-color:var(--acento)}
+.command-button.command-propio .command-icon{color:var(--acento)}

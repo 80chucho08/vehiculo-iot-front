@@ -4,6 +4,7 @@ import { ADMIN_ROUTES } from '../core/config.js';
 import { request } from '../core/api.js';
 import { conParametros } from '../core/layout.js';
 import { abrirDemosDeUnidad } from './editor-demos.js';
+import { abrirComandosDeUnidad, reportarFalla, verReportes } from './comandos-propios.js';
 import { abrirFormulario, avisar, crearTabla, el, etiqueta, fechaHora, textoError } from './ui.js';
 
 export function crearMisVehiculos(contenedor) {
@@ -17,17 +18,21 @@ export function crearMisVehiculos(contenedor) {
       { titulo: 'Soporte de la empresa', celda: (v) => (v.soporte_hasta
         ? el('span', { class: 'celda-doble' }, etiqueta('Autorizado', 'aviso'), el('small', {}, 'hasta ', fechaHora(v.soporte_hasta)))
         : etiqueta('No autorizado', 'neutro')) },
+      { titulo: 'Reportes', celda: (v) => el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => verReportes(v), 'aria-label': `Reportes de ${v.nombre}` },
+        Number(v.reportes_abiertos) ? `${v.reportes_abiertos} abierto${Number(v.reportes_abiertos) === 1 ? '' : 's'}` : 'Ver') },
       { titulo: 'Acciones', clase: 'col-acciones', celda: (v) => el('span', { class: 'acciones' },
         el('a', { class: 'tecla tecla-chica tecla-acento', href: conParametros('index.html', { vehiculo: v.id_vehiculo }), 'aria-label': `Controlar ${v.nombre}` }, 'Controlar'),
         el('a', { class: 'tecla tecla-chica', href: conParametros('monitoreo.html', { vehiculo: v.id_vehiculo }), 'aria-label': `Monitorear ${v.nombre}` }, 'Monitorear'),
+        el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => abrirComandosDeUnidad(v), 'aria-label': `Comandos de ${v.nombre}` }, 'Comandos'),
         el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => abrirDemosDeUnidad(v), 'aria-label': `Demos de ${v.nombre}` }, 'Demos'),
+        el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => reportarFalla(v, cargar), 'aria-label': `Reportar falla de ${v.nombre}` }, 'Reportar falla'),
         v.soporte_hasta
           ? el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => revocar(v) }, 'Revocar soporte')
           : el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => autorizar(v) }, 'Autorizar soporte')) }
     ]
   });
   contenedor.append(
-    el('p', { class: 'admin-sub' }, 'Solo tú controlas y monitoreas tus unidades. La empresa necesita tu autorización temporal para operarlas.'),
+    el('p', { class: 'admin-sub' }, 'Solo tú controlas y monitoreas tus unidades. La empresa necesita tu autorización temporal para operarlas: repórtale una falla y autoriza su acceso, o revócalo cuando quieras.'),
     tabla.nodo);
 
   async function cargar() {

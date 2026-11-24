@@ -40,12 +40,14 @@ function desdeRespuesta(r) {
   const expira = parseFechaBackend(r?.expira_en)?.getTime();
   const absoluto = parseFechaBackend(r?.expira_absoluto)?.getTime();
   const u = r?.usuario;
-  if (typeof r?.access_token !== 'string' || !expira || !absoluto || !u || !['admin', 'usuario'].includes(u.rol)) {
+  if (typeof r?.access_token !== 'string' || !expira || !absoluto || !u || !['admin', 'usuario', 'invitado'].includes(u.rol)) {
     throw new Error('La API devolvió una sesión con formato inesperado.');
   }
+  // La CUENTA de invitado (rol 'invitado' en la API) se guarda como 'visitante' para no confundirla
+  // con la prueba anónima del catálogo, que en este navegador usa rol 'invitado' y una reserva.
   return {
     token: r.access_token, expira, absoluto,
-    usuario: { id: u.id_usuario, email: String(u.email), nombre: String(u.nombre), rol: u.rol }
+    usuario: { id: u.id_usuario, email: String(u.email), nombre: String(u.nombre), rol: u.rol === 'invitado' ? 'visitante' : u.rol }
   };
 }
 

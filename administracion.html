@@ -56,7 +56,7 @@
     <!-- Sin sesión -->
     <section class="panel admin-login" id="vista-login" aria-labelledby="login-titulo" hidden>
       <h2 id="login-titulo"><svg class="icono" aria-hidden="true"><use href="#i-candado"/></svg>Iniciar sesión</h2>
-      <p class="admin-sub">Administradores y compradores. ¿Quieres probar un vehículo sin cuenta? Entra al <a href="catalogo.html">catálogo</a>.</p>
+      <p class="admin-sub">Administradores, compradores e invitados. ¿Quieres probar un vehículo sin cuenta? Entra al <a href="catalogo.html">catálogo</a>.</p>
       <form id="login-form" class="admin-form" novalidate>
         <div class="form-fila"><label for="login-email">Correo</label><input id="login-email" name="email" type="email" autocomplete="username" required maxlength="120" inputmode="email"></div>
         <div class="form-fila"><label for="login-password">Contraseña</label><input id="login-password" name="password" type="password" autocomplete="current-password" required maxlength="128"></div>
@@ -81,6 +81,7 @@
         <button role="tab" type="button" id="tab-modelos" aria-controls="panel-modelos" data-seccion="modelos">Modelos</button>
         <button role="tab" type="button" id="tab-clientes" aria-controls="panel-clientes" data-seccion="clientes">Clientes</button>
         <button role="tab" type="button" id="tab-asignaciones" aria-controls="panel-asignaciones" data-seccion="asignaciones">Asignaciones</button>
+        <button role="tab" type="button" id="tab-reportes" aria-controls="panel-reportes" data-seccion="reportes">Reportes</button>
         <button role="tab" type="button" id="tab-bitacora" aria-controls="panel-bitacora" data-seccion="bitacora">Bitácora</button>
       </div>
       <div role="tabpanel" id="panel-resumen" aria-labelledby="tab-resumen" tabindex="0" hidden></div>
@@ -88,12 +89,19 @@
       <div role="tabpanel" id="panel-modelos" aria-labelledby="tab-modelos" tabindex="0" hidden></div>
       <div role="tabpanel" id="panel-clientes" aria-labelledby="tab-clientes" tabindex="0" hidden></div>
       <div role="tabpanel" id="panel-asignaciones" aria-labelledby="tab-asignaciones" tabindex="0" hidden></div>
+      <div role="tabpanel" id="panel-reportes" aria-labelledby="tab-reportes" tabindex="0" hidden></div>
       <div role="tabpanel" id="panel-bitacora" aria-labelledby="tab-bitacora" tabindex="0" hidden></div>
     </section>
 
     <section class="panel admin-contenido" id="vista-comprador" aria-labelledby="comprador-titulo" hidden>
       <h2 id="comprador-titulo" class="admin-h2">Mis vehículos</h2>
       <div id="panel-mis-vehiculos"></div>
+    </section>
+
+    <section class="panel admin-contenido" id="vista-visitante" aria-labelledby="visitante-titulo" hidden>
+      <h2 id="visitante-titulo" class="admin-h2">Cuenta de invitado</h2>
+      <p class="admin-sub">Puedes ver y controlar únicamente el carrito en exhibición, con los movimientos y demos de fábrica habilitados para invitados. No puedes crear, editar ni eliminar comandos o demostraciones, ni usar carritos vendidos.</p>
+      <div class="acciones" id="visitante-acciones"></div>
     </section>
 
     <footer class="app-credits" id="app-credits"></footer>

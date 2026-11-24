@@ -73,20 +73,21 @@ export function consumirSolicitud(id, event = null) {
   return undefined;
 }
 
-function commandInfo(codigo) {
+// `explicito`: un comando PROPIO del usuario (V009) con el mismo código que uno de fábrica.
+function commandInfo(codigo, explicito = null) {
   const group = GRUPOS.find((item) => item.codigos.includes(Number(codigo)));
   if (!group || !['sostenido', 'toggle'].includes(group.tipo)) {
     console.error(`El codigo de comando ${codigo} no tiene un tipo valido en data/grupos.js.`);
     return null;
   }
-  const command = getState().commands.find((item) => Number(item.codigo) === Number(codigo) && item.activo);
+  const command = explicito || getState().commands.find((item) => Number(item.codigo) === Number(codigo) && item.activo);
   if (!command) return null;
   return { command, type: group.tipo };
 }
 
-export async function enviarComando(codigo, origen = 'joystick') {
+export async function enviarComando(codigo, origen = 'joystick', explicito = null) {
   if (getState().demoRunning || getState().demoStarting) { showAction('Los comandos estan bloqueados mientras se inicia o ejecuta una demo.', 'error'); return false; }
-  const info = commandInfo(codigo);
+  const info = commandInfo(codigo, explicito);
   if (!info) { showAction(`El comando ${codigo} no esta disponible en el catalogo activo.`, 'error'); return false; }
   const item = { codigo: Number(codigo), origen, ...info };
   if (item.type === 'toggle' && (movementInFlight || stopping)) {

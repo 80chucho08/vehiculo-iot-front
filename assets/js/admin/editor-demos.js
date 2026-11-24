@@ -1,5 +1,6 @@
-// Editor de demos del comprador. Las de fábrica se ven en solo lectura; las privadas se crean, editan
-// (agregar, quitar, editar y reordenar pasos) y eliminan. La validación del navegador repite la del
+// Editor de demos. Comprador: las de fábrica se ven en solo lectura; las privadas se crean, editan
+// (agregar, quitar, editar y reordenar pasos) y eliminan. Administrador (V009): gestiona TODAS las demos
+// de cualquier unidad, también las privadas de un comprador; crea demos de fábrica. La validación del navegador repite la del
 // servidor solo para avisar antes: la que manda es la API (y luego el ejecutor y el firmware).
 import { ADMIN_ROUTES } from '../core/config.js';
 import { request } from '../core/api.js';
@@ -8,6 +9,10 @@ import { abrirPanel, avisar, el, etiqueta, textoError } from './ui.js';
 
 const rutaDemos = (idVehiculo) => `${ADMIN_ROUTES.misVehiculos}/${encodeURIComponent(idVehiculo)}/demos`;
 const rutaDemo = (idVehiculo, idDemo) => `${rutaDemos(idVehiculo)}/${encodeURIComponent(idDemo)}`;
+const RUTAS = {
+  comprador: { lista: rutaDemos, crear: rutaDemos, demo: rutaDemo },
+  admin: { lista: ADMIN_ROUTES.demosAdmin, crear: ADMIN_ROUTES.demosAdmin, demo: (_idVehiculo, idDemo) => ADMIN_ROUTES.demoAdmin(idDemo) }
+};
 const segundos = (ms) => `${(ms / 1000).toLocaleString('es-MX', { maximumFractionDigits: 1 })} s`;
 const totalMs = (pasos) => pasos.reduce((s, p) => s + Number(p.duracion_ms || 0) + Number(p.pausa_ms || 0), 0);
 
@@ -33,21 +38,24 @@ export function validarPasos(pasos, contexto) {
   return errores;
 }
 
-export async function abrirDemosDeUnidad(unidad) {
+export async function abrirDemosDeUnidad(unidad, { admin = false } = {}) {
+  const rutas = admin ? RUTAS.admin : RUTAS.comprador;
   const lista = el('div', { class: 'demos-lista' }, el('p', { class: 'admin-estado', 'data-estado': 'cargando' }, 'Cargando demos…'));
   const nueva = el('button', { type: 'button', class: 'tecla tecla-acento tecla-chica', disabled: true }, 'Nueva demo');
   const enlaceControl = el('a', { class: 'tecla tecla-chica', href: conParametros('index.html', { vehiculo: unidad.id_vehiculo }) }, 'Ejecutar en CONTROL');
   const panel = abrirPanel({
     titulo: `Demos · ${unidad.nombre}`,
     contenido: el('div', {},
-      el('p', { class: 'admin-sub' }, 'Las demos se ejecutan desde CONTROL, donde DETENER siempre tiene prioridad y la cancela.'),
+      el('p', { class: 'admin-sub' }, admin
+        ? 'Gestionas todas las demos de la unidad, también las privadas de su comprador. Las nuevas son de fábrica: el comprador las ve y ejecuta, pero no puede modificarlas. Ejecutarlas en una unidad vendida requiere su autorización de soporte.'
+        : 'Las demos de fábrica no se pueden modificar. Las tuyas (privadas) sí. Se ejecutan desde CONTROL, donde DETENER siempre tiene prioridad y la cancela.'),
       el('div', { class: 'seccion-cabecera' }, nueva, enlaceControl), lista)
   });
 
   let contexto = null;
   async function cargar() {
     try {
-      contexto = await request(rutaDemos(unidad.id_vehiculo), { auth: true });
+      contexto = await request(rutas.lista(unidad.id_vehiculo), { auth: true });
     } catch (error) {
       lista.replaceChildren(el('p', { class: 'admin-estado', 'data-estado': 'error' }, textoError(error)));
       return;
@@ -55,7 +63,7 @@ export async function abrirDemosDeUnidad(unidad) {
     nueva.disabled = !contexto.comandos.length;
     const tarjetas = contexto.demos.map((d) => el('article', { class: 'demo-tarjeta' },
       el('div', { class: 'demo-tarjeta-titulo' }, el('h3', {}, d.nombre),
-        d.editable ? etiqueta('Privada', 'acento') : etiqueta('De fábrica', 'neutro'),
+        d.tipo === 'privada' ? etiqueta(admin && d.propietario ? `Privada · ${d.propietario}` : 'Privada', 'acento') : etiqueta('De fábrica', 'neutro'),
         d.activo ? null : etiqueta('Inactiva', 'error')),
       el('p', { class: 'admin-sub' }, `${d.pasos.length} paso${d.pasos.length === 1 ? '' : 's'} · ${segundos(totalMs(d.pasos))}${d.descripcion ? ` · ${d.descripcion}` : ''}`),
       el('ol', { class: 'demo-pasos-resumen' }, d.pasos.map((p) => el('li', {}, `${p.comando} · ${p.duracion_ms} ms${p.pausa_ms ? ` + pausa ${p.pausa_ms} ms` : ''}`))),
@@ -68,21 +76,21 @@ export async function abrirDemosDeUnidad(unidad) {
   async function eliminar(d) {
     if (!window.confirm(`¿Eliminar la demo «${d.nombre}»? No se puede deshacer.`)) return;
     try {
-      await request(rutaDemo(unidad.id_vehiculo, d.id_demo), { method: 'DELETE', auth: true });
+      await request(rutas.demo(unidad.id_vehiculo, d.id_demo), { method: 'DELETE', auth: true });
       avisar(`Demo «${d.nombre}» eliminada.`);
       await cargar();
     } catch (error) { avisar(textoError(error), 'error'); }
   }
 
   function editar(demo) {
-    abrirEditor({ unidad, contexto, demo, alGuardar: cargar });
+    abrirEditor({ unidad, contexto, demo, rutas, alGuardar: cargar });
   }
   nueva.addEventListener('click', () => editar(null));
   await cargar();
   return panel;
 }
 
-function abrirEditor({ unidad, contexto, demo, alGuardar }) {
+function abrirEditor({ unidad, contexto, demo, rutas, alGuardar }) {
   const { limites, comandos } = contexto;
   const porId = new Map(comandos.map((c) => [c.id_comando, c]));
   // Copia de trabajo: nada se guarda hasta pulsar "Guardar".
@@ -107,7 +115,7 @@ function abrirEditor({ unidad, contexto, demo, alGuardar }) {
     listaPasos.replaceChildren(...pasos.map((p, i) => {
       const id = `paso-${i}`;
       const select = el('select', { id: `${id}-cmd`, 'aria-label': `Paso ${i + 1}: movimiento` },
-        comandos.map((c) => el('option', { value: c.id_comando }, `${c.codigo} · ${c.nombre}`)));
+        comandos.map((c) => el('option', { value: c.id_comando }, `${c.codigo} · ${c.nombre}${c.tipo === 'usuario' ? ' (propio)' : ''}`)));
       select.value = String(p.id_comando);
       const tope = topePaso(porId.get(Number(p.id_comando)), limites);
       const duracion = el('input', { id: `${id}-dur`, type: 'number', min: limites.paso_min_ms, max: tope, step: 100, inputmode: 'numeric', 'aria-label': `Paso ${i + 1}: duración en milisegundos (máximo ${tope})` });
@@ -176,7 +184,7 @@ function abrirEditor({ unidad, contexto, demo, alGuardar }) {
     guardar.disabled = true;
     const cuerpo = { nombre: nombre.value.trim(), descripcion: descripcion.value.trim() || null, activo: activo.checked, pasos };
     try {
-      await request(demo ? rutaDemo(unidad.id_vehiculo, demo.id_demo) : rutaDemos(unidad.id_vehiculo),
+      await request(demo ? rutas.demo(unidad.id_vehiculo, demo.id_demo) : rutas.crear(unidad.id_vehiculo),
         { method: demo ? 'PUT' : 'POST', auth: true, body: cuerpo });
       dialogo.close();
       avisar(demo ? 'Demo guardada.' : 'Demo creada. Ya aparece en CONTROL para esta unidad.');

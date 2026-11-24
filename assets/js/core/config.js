@@ -43,7 +43,17 @@ export const ADMIN_ROUTES = Object.freeze({
   finalizarAsignacion: (id) => `/api/admin/asignaciones/${encodeURIComponent(id)}/finalizar`,
   auditoria: '/api/admin/auditoria',
   misVehiculos: '/api/mis-vehiculos',
-  soporte: (id) => `/api/mis-vehiculos/${encodeURIComponent(id)}/soporte`
+  soporte: (id) => `/api/mis-vehiculos/${encodeURIComponent(id)}/soporte`,
+  // V009: comandos propios, reportes de falla y gestión de demos/comandos del admin
+  misComandos: (id) => `/api/mis-vehiculos/${encodeURIComponent(id)}/comandos`,
+  miComando: (id, idComando) => `/api/mis-vehiculos/${encodeURIComponent(id)}/comandos/${encodeURIComponent(idComando)}`,
+  misReportes: (id) => `/api/mis-vehiculos/${encodeURIComponent(id)}/reportes`,
+  comandosAdmin: (id) => `/api/admin/unidades/${encodeURIComponent(id)}/comandos`,
+  crearComandoFabrica: (id) => `/api/vehiculos/${encodeURIComponent(id)}/comandos`,
+  desactivarComando: (id) => `/api/comandos/${encodeURIComponent(id)}`,
+  demosAdmin: (id) => `/api/admin/unidades/${encodeURIComponent(id)}/demos`,
+  demoAdmin: (id) => `/api/admin/demos/${encodeURIComponent(id)}`,
+  reportes: '/api/admin/reportes', reporte: (id) => `/api/admin/reportes/${encodeURIComponent(id)}`
 });
 // Sesión: el token dura 30 min; se renueva cuando faltan RENOVAR_ANTES_MS (tope absoluto 8 h, lo impone la API).
 export const SESION_CLAVE = 'ciot-sesion';

@@ -1,7 +1,9 @@
 // Inventario: unidades físicas (vehiculos) con modelo, serie, tipo y comprador vigente.
-// Alta y edición comercial, y comandos permitidos por unidad (activo, invitados, tope de duración).
+// Alta y edición comercial, comandos (de fábrica y propios de compradores), demos de cualquier unidad
+// y dispositivo compartido (V009: un mismo ESP8266 registrado como varias unidades para pruebas).
 import { ADMIN_ROUTES } from '../core/config.js';
 import { request } from '../core/api.js';
+import { abrirDemosDeUnidad } from './editor-demos.js';
 import { abrirFormulario, abrirPanel, avisar, crearTabla, el, etiqueta, textoError } from './ui.js';
 
 const TIPOS = [['venta', 'Venta'], ['exhibicion', 'Exhibición'], ['simulada', 'Simulada']];
@@ -10,6 +12,7 @@ const PATRON_SERIE = '[A-Z0-9][A-Z0-9\\-]{2,39}';
 
 export function crearInventario(contenedor) {
   let modelos = [];
+  let unidades = [];
   let cargado = false;
 
   const tabla = crearTabla({
@@ -20,10 +23,13 @@ export function crearInventario(contenedor) {
       { titulo: 'Tipo', celda: (u) => etiqueta(NOMBRE_TIPO[u.tipo_unidad] || u.tipo_unidad, u.tipo_unidad === 'exhibicion' ? 'acento' : 'neutro') },
       { titulo: 'Estado', celda: (u) => (u.activo ? etiqueta('Activa', 'ok') : etiqueta('De baja', 'error')) },
       { titulo: 'Comprador', celda: (u) => (u.propietario ? u.propietario : el('span', { class: 'texto-tenue' }, u.tipo_unidad === 'venta' ? 'Disponible' : 'No se vende')) },
-      { titulo: 'Dispositivo', celda: (u) => (u.dispositivo_conectado ? etiqueta('En línea', 'ok') : etiqueta('Sin conexión', 'neutro')) },
+      { titulo: 'Dispositivo', celda: (u) => el('span', { class: 'celda-doble' },
+        u.dispositivo_conectado ? etiqueta('En línea', 'ok') : etiqueta('Sin conexión', 'neutro'),
+        u.id_unidad_fisica ? el('small', {}, `ESP8266 compartido de ID ${u.id_unidad_fisica}`) : null) },
       { titulo: 'Acciones', clase: 'col-acciones', celda: (u) => el('span', { class: 'acciones' },
         el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => editar(u), 'aria-label': `Editar ${u.nombre}` }, 'Editar'),
         el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => comandos(u), 'aria-label': `Comandos de ${u.nombre}` }, 'Comandos'),
+        el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => abrirDemosDeUnidad(u, { admin: true }), 'aria-label': `Demos de ${u.nombre}` }, 'Demos'),
         el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => tokenDispositivo(u), 'aria-label': `Token del ESP8266 de ${u.nombre}` }, 'Token ESP')) }
     ]
   });
@@ -64,7 +70,8 @@ export function crearInventario(contenedor) {
     try {
       const [inv, mods] = await Promise.all([request(ADMIN_ROUTES.inventario, { auth: true }), request(ADMIN_ROUTES.modelos, { auth: true })]);
       modelos = mods.modelos || [];
-      tabla.filas(inv.unidades || [], 'Aún no hay unidades registradas.');
+      unidades = inv.unidades || [];
+      tabla.filas(unidades, 'Aún no hay unidades registradas.');
       cargado = true;
     } catch (error) {
       tabla.error(`No se pudo cargar el inventario: ${textoError(error)}`, () => cargar(true));
@@ -104,10 +111,15 @@ export function crearInventario(contenedor) {
         { nombre: 'tipo_unidad', etiqueta: 'Tipo', tipo: 'select', opciones: TIPOS, valor: u.tipo_unidad },
         { nombre: 'microcontrolador', etiqueta: 'Microcontrolador', maxlength: 50, valor: u.microcontrolador },
         { nombre: 'descripcion', etiqueta: 'Descripción', tipo: 'textarea', maxlength: 255, valor: u.descripcion },
+        { nombre: 'id_unidad_fisica', etiqueta: 'Dispositivo (ESP8266)', tipo: 'select', valor: u.id_unidad_fisica ?? '',
+          opciones: [['', 'Propio (su firmware usa esta unidad)'],
+            ...unidades.filter((o) => o.id_vehiculo !== u.id_vehiculo && o.activo && !o.id_unidad_fisica).map((o) => [o.id_vehiculo, `Compartido: el de ${o.nombre} · ID ${o.id_vehiculo}`])],
+          ayuda: 'Compartido: los comandos de esta unidad mueven el carrito físico de la otra (pruebas con un solo carrito).' },
         { nombre: 'activo', etiqueta: 'Unidad activa (desmarcar = baja lógica, conserva el historial)', tipo: 'checkbox', valor: Boolean(u.activo) }
       ],
       enviar: async (d) => {
-        await request(ADMIN_ROUTES.unidad(u.id_vehiculo), { method: 'PUT', auth: true, body: { ...d, numero_serie: d.numero_serie.toUpperCase() } });
+        await request(ADMIN_ROUTES.unidad(u.id_vehiculo), { method: 'PUT', auth: true,
+          body: { ...d, numero_serie: d.numero_serie.toUpperCase(), id_unidad_fisica: d.id_unidad_fisica ? Number(d.id_unidad_fisica) : null } });
         avisar(`Unidad ${u.id_vehiculo} actualizada.`);
         await cargar(true);
       }
@@ -116,19 +128,44 @@ export function crearInventario(contenedor) {
 
   async function comandos(u) {
     const lista = el('div', { class: 'comandos-lista' }, el('p', { class: 'admin-estado', 'data-estado': 'cargando' }, 'Cargando comandos…'));
+    const nuevo = el('button', { type: 'button', class: 'tecla tecla-acento tecla-chica' }, 'Nuevo comando de fábrica');
     abrirPanel({ titulo: `Comandos de ${u.nombre}`, contenido: el('div', {},
-      el('p', { class: 'admin-sub' }, 'Activo: disponible en CONTROL. Invitados: permitido en la prueba temporal (solo movimientos 1-12). Tope: duración máxima por paso de demo.'),
-      lista) });
-    try {
-      const r = await request(ADMIN_ROUTES.comandosUnidad(u.id_vehiculo), { auth: true });
-      const filas = (r.comandos || []).map((c) => filaComando(c));
-      lista.replaceChildren(...(filas.length ? filas : [el('p', { class: 'admin-estado', 'data-estado': 'vacio' }, 'Esta unidad no tiene comandos.')]));
-    } catch (error) {
-      lista.replaceChildren(el('p', { class: 'admin-estado', 'data-estado': 'error' }, textoError(error)));
+      el('p', { class: 'admin-sub' }, 'Activo: disponible en CONTROL (desmarcar = eliminar con baja lógica; el historial se conserva). Invitados: permitido para invitados (solo movimientos 1-12). Tope: duración máxima por paso de demo. «Propio»: lo creó un comprador.'),
+      el('div', { class: 'seccion-cabecera' }, nuevo), lista) });
+    async function recargar() {
+      try {
+        const r = await request(ADMIN_ROUTES.comandosAdmin(u.id_vehiculo), { auth: true });
+        const filas = (r.comandos || []).map((c) => filaComando(c, recargar));
+        lista.replaceChildren(...(filas.length ? filas : [el('p', { class: 'admin-estado', 'data-estado': 'vacio' }, 'Esta unidad no tiene comandos.')]));
+      } catch (error) {
+        lista.replaceChildren(el('p', { class: 'admin-estado', 'data-estado': 'error' }, textoError(error)));
+      }
     }
+    nuevo.addEventListener('click', () => formularioComando(u, null, recargar));
+    await recargar();
   }
 
-  function filaComando(c) {
+  // Alta (de fábrica) o edición de nombre, código y descripción de un comando.
+  function formularioComando(u, c, alGuardar) {
+    abrirFormulario({
+      titulo: c ? `Editar «${c.nombre}»` : `Nuevo comando · ${u.nombre}`,
+      descripcion: c ? null : 'El código debe ser uno que el firmware entienda (1-13). Entre los de fábrica, el código es único por unidad.',
+      campos: [
+        { nombre: 'nombre', etiqueta: 'Nombre', requerido: true, maxlength: 60, valor: c?.nombre },
+        { nombre: 'codigo', etiqueta: 'Código', tipo: 'number', requerido: true, min: 1, max: 13, valor: c?.codigo },
+        { nombre: 'descripcion', etiqueta: 'Descripción', tipo: 'textarea', maxlength: 255, valor: c?.descripcion }
+      ],
+      textoEnviar: c ? 'Guardar' : 'Crear',
+      enviar: async (d) => {
+        if (c) await request(ADMIN_ROUTES.desactivarComando(c.id_comando), { method: 'PUT', auth: true, body: { ...d, activo: Boolean(c.activo) } });
+        else await request(ADMIN_ROUTES.crearComandoFabrica(u.id_vehiculo), { method: 'POST', auth: true, body: d });
+        avisar(c ? 'Comando actualizado.' : `Comando «${d.nombre}» creado.`);
+        await alGuardar();
+      }
+    });
+  }
+
+  function filaComando(c, recargar) {
     const id = `cmd-${c.id_comando}`;
     const activo = el('input', { type: 'checkbox', id: `${id}-a` }); activo.checked = Boolean(c.activo);
     const invitado = el('input', { type: 'checkbox', id: `${id}-i`, disabled: !(c.codigo >= 1 && c.codigo <= 12) }); invitado.checked = Boolean(c.permitido_invitado);
@@ -146,12 +183,13 @@ export function crearInventario(contenedor) {
       } catch (error) { estado.textContent = textoError(error); }
       finally { guardar.disabled = false; }
     });
+    const editar = el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => formularioComando(null, c, recargar) }, 'Editar');
     return el('fieldset', { class: 'comando-fila' },
-      el('legend', {}, `${c.codigo} · ${c.nombre}`),
+      el('legend', {}, `${c.codigo} · ${c.nombre} `, c.tipo === 'usuario' ? etiqueta(`Propio · ${c.propietario || 'comprador'}`, 'acento') : etiqueta('De fábrica', 'neutro')),
       el('label', { for: `${id}-a` }, activo, ' Activo'),
       el('label', { for: `${id}-i` }, invitado, ' Invitados'),
       el('label', { for: `${id}-t`, class: 'comando-tope' }, 'Tope ms', tope),
-      guardar, estado);
+      guardar, editar, estado);
   }
 
   return { cargar };

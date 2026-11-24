@@ -12,6 +12,7 @@ import { configureDemos, loadDemos, iniciarDemo, cancelarDemo, completarDemo, fi
 import { setupJoystick } from './joystick.js';
 import { crearLuz } from './luz.js';
 import { crearDemoProgreso } from './demo-progreso.js';
+import { renderMisComandos } from './mis-comandos.js';
 import { JOYSTICK_GRUA, JOYSTICK_GARRA } from '../data/joystick-map.js';
 
 if (['localhost', '127.0.0.1', '::1'].includes(location.hostname)) {
@@ -93,11 +94,15 @@ async function loadCatalogs() {
   byId('catalog-status').hidden = true;
   try {
     const result = await request(ROUTES.commands);
-    const comandos = Array.isArray(result.comandos) ? result.comandos : [];
+    const todos = Array.isArray(result.comandos) ? result.comandos : [];
+    // Joysticks y botones usan los de fábrica; los propios del usuario (V009) van en «Mis comandos».
+    const comandos = todos.filter((c) => (c.tipo || 'fabrica') === 'fabrica');
+    const propios = todos.filter((c) => c.tipo === 'usuario' && c.activo);
     // Invitado: solo los comandos habilitados para la prueba (la API rechaza los demás con 403).
     updateState({ commands: esInvitado() ? comandos.filter((c) => c.permitido_invitado) : comandos });
     renderCommands((code) => enviarComando(code, 'boton'), undefined, { [LUZ_CODIGO]: luz.crearBoton },
-      esInvitado() ? { nota: 'Prueba de invitado: movimientos de grúa y garra, luz y demos de fábrica.' } : {});
+      esInvitado() ? { nota: 'Invitado: movimientos de grúa y garra, luz y demos de fábrica.' } : {});
+    if (!esInvitado()) renderMisComandos(propios, { enviarComando, detener, isSustainedMovementActive });
     commandsOK = getState().commands.length > 0;
   } catch (error) { logAction(`No se pudo cargar el catálogo de comandos: ${error.message}`, 'error'); }
   try {

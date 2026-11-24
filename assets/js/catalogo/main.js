@@ -41,7 +41,12 @@ async function cargar() {
 function tarjeta(u, minutos, mia) {
   const esMia = mia?.usuario.rol === 'invitado' && mia.idVehiculo === u.id_vehiculo;
   let accion;
-  if (esMia) {
+  if (mia?.usuario.rol === 'visitante') {
+    // Cuenta de invitado: controla la exhibición sin reservar (la API aplica sus permisos).
+    accion = u.disponible
+      ? el('a', { class: 'tecla tecla-acento', href: conParametros('index.html', { vehiculo: u.id_vehiculo }) }, 'Controlar con mi cuenta')
+      : el('button', { type: 'button', class: 'tecla', disabled: true }, 'En uso por otro invitado');
+  } else if (esMia) {
     accion = el('a', { class: 'tecla tecla-acento', href: conParametros('index.html', { vehiculo: u.id_vehiculo }) }, 'Continuar mi prueba');
   } else if (!u.disponible) {
     accion = el('button', { type: 'button', class: 'tecla', disabled: true }, 'En uso por otro invitado');

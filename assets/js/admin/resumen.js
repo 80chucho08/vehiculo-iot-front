@@ -34,16 +34,18 @@ export function crearResumen(contenedor) {
       const usuarios = Array.isArray(d.usuarios_por_rol) ? d.usuarios_por_rol : [];
       const compradores = usuarios.filter((u) => u.rol === 'usuario' && u.activo).reduce((s, u) => s + Number(u.n), 0);
       const admins = usuarios.filter((u) => u.rol === 'admin' && u.activo).reduce((s, u) => s + Number(u.n), 0);
+      const invitados = usuarios.filter((u) => u.rol === 'invitado' && u.activo).reduce((s, u) => s + Number(u.n), 0);
       rejilla.replaceChildren(
         metrica('Unidades activas', totalActivas, `${porTipo}${bajas ? ` · ${bajas} de baja` : ''}`),
         metrica('Vendidas', d.unidades_vendidas, 'Con asignación vigente'),
-        metrica('Compradores', compradores, `${admins} administrador${admins === 1 ? '' : 'es'}`),
+        metrica('Compradores', compradores, `${admins} administrador${admins === 1 ? '' : 'es'} · ${invitados} cuenta${invitados === 1 ? '' : 's'} de invitado`),
         metrica('Modelos activos', d.modelos_activos),
         metrica('Demos activas', d.demos_activas),
         metrica('Dispositivos en línea', d.dispositivos_conectados, 'ESP8266 con WSS abierto ahora', d.dispositivos_conectados ? 'ok' : undefined),
         metrica('Movimientos 24 h', d.movimientos_24h, 'Persistidos en RDS'),
         metrica('Reservas de invitado', d.reservas_invitado_activas, 'Vigentes'),
         metrica('Soportes autorizados', d.soportes_vigentes, 'Consentimientos vigentes'),
+        metrica('Reportes de falla', d.reportes_abiertos ?? 0, 'Abiertos o en revisión', d.reportes_abiertos ? 'aviso' : undefined),
         metrica('Accesos denegados 24 h', d.accesos_denegados_24h, 'Ver Bitácora', d.accesos_denegados_24h ? 'aviso' : undefined)
       );
       pie.replaceChildren('Datos reales de la API · generados ', fechaHora(d.generado_en), ' (hora del centro de México).');
