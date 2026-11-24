@@ -101,7 +101,7 @@ async function loadCatalogs() {
     // Invitado: solo los comandos habilitados para la prueba (la API rechaza los demás con 403).
     updateState({ commands: esInvitado() ? comandos.filter((c) => c.permitido_invitado) : comandos });
     renderCommands((code) => enviarComando(code, 'boton'), undefined, { [LUZ_CODIGO]: luz.crearBoton },
-      esInvitado() ? { nota: 'Invitado: movimientos de grúa y garra, luz y demos de fábrica.' } : {});
+      esInvitado() ? { nota: 'Invitado: comandos habilitados por la empresa y demos de fábrica.' } : {});
     if (!esInvitado()) renderMisComandos(propios, { enviarComando, detener, isSustainedMovementActive });
     commandsOK = getState().commands.length > 0;
   } catch (error) { logAction(`No se pudo cargar el catálogo de comandos: ${error.message}`, 'error'); }

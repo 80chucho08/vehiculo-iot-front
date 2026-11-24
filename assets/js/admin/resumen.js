@@ -10,7 +10,7 @@ export function crearResumen(contenedor) {
   const estado = el('p', { class: 'admin-estado', role: 'status', 'aria-live': 'polite' });
   const rejilla = el('div', { class: 'metricas' });
   const pie = el('p', { class: 'admin-nota' });
-  const actualizar = el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => cargar(true) }, 'Actualizar');
+  const actualizar = el('button', { type: 'button', class: 'tecla tecla-chica', onclick: () => cargar() }, 'Actualizar');
   contenedor.append(
     el('div', { class: 'seccion-cabecera' }, el('h2', { class: 'admin-h2' }, 'Resumen de la empresa'), actualizar),
     estado, rejilla, pie);
@@ -19,9 +19,9 @@ export function crearResumen(contenedor) {
     el('article', { class: 'metrica', 'data-tipo': tipo }, el('h3', {}, titulo), el('p', { class: 'metrica-valor' }, String(valor)),
       detalle ? el('p', { class: 'metrica-detalle' }, detalle) : null);
 
-  let cargado = false;
-  async function cargar(forzar = false) {
-    if (cargado && !forzar) return;
+  // Se vuelve a consultar cada vez que se abre la pestaña: las métricas (reportes, soportes, ventas)
+  // cambian por acciones en otras pestañas y nunca deben quedarse con los números de la primera carga.
+  async function cargar() {
     estado.dataset.estado = 'cargando'; estado.textContent = 'Consultando métricas…'; estado.hidden = false;
     actualizar.disabled = true;
     try {
@@ -50,7 +50,6 @@ export function crearResumen(contenedor) {
       );
       pie.replaceChildren('Datos reales de la API · generados ', fechaHora(d.generado_en), ' (hora del centro de México).');
       estado.hidden = true;
-      cargado = true;
     } catch (error) {
       estado.dataset.estado = 'error';
       estado.textContent = `No se pudieron cargar las métricas: ${textoError(error)}`;
