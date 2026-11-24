@@ -4,32 +4,15 @@
     {
       "name": "control-iot-estatico",
       "runtimeExecutable": "python",
-      "runtimeArgs": [
-        ".claude/servidor_local.py",
-        "3010",
-        "127.0.0.1"
-      ],
+      "runtimeArgs": [".claude/servidor_local.py", "3010", "127.0.0.1"],
       "port": 3010
     },
     {
       "name": "control-iot-con-api-local",
       "runtimeExecutable": "python",
-      "runtimeArgs": [
-        ".claude/servidor_local.py",
-        "3000",
-        "localhost"
-      ],
+      "runtimeArgs": [".claude/servidor_local.py", "3000", "localhost"],
       "port": 3000,
       "url": "http://localhost:3000"
-    },
-    {
-      "name": "api-local-prueba",
-      "runtimeExecutable": "cmd",
-      "runtimeArgs": [
-        "/c",
-        "C:\\Users\\chuch\\AppData\\Local\\Temp\\claude\\8c8b65bb732dbfd2\\81399a9e-26ba-4499-adbc-47db9a99cf97\\scratchpad\\api_local.cmd"
-      ],
-      "port": 8010
     }
   ]
 }
