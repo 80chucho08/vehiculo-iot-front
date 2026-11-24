@@ -22,13 +22,16 @@
 11. [Despliegue en GitHub Pages (mayúsculas y rutas)](#-despliegue-en-github-pages-mayúsculas-y-rutas)
 12. [Experiencia de Usuario y Accesibilidad](#-experiencia-de-usuario-y-accesibilidad)
 13. [MONITOREO](#-monitoreo)
-14. [Créditos](#-créditos)
+14. [ADMINISTRACIÓN y roles](#-administración-administracionhtml-práctica-43)
+15. [Créditos](#-créditos)
 
 ---
 
 ## 🚀 Descripción General
 
 **Carrito Jesus · Control IoT** es el panel de mando (front-end) diseñado para operar un vehículo robótico móvil dotado de actuadores para grúa elevadora, garra manipuladora y sistemas auxiliares.
+
+Sitio publicado: <https://80chucho08.github.io/vehiculo-iot-front/>. Incluye CONTROL, MONITOREO, EVENTOS, un CATÁLOGO público y ADMINISTRACIÓN con tres roles (Invitado, Usuario comprador y Administrador).
 
 La aplicación opera como una cabina de mando interactiva capaz de adaptarse fluidamente a múltiples factores de forma (móvil vertical, móvil horizontal, tablets y pantallas de escritorio) y ofrece control por gestos táctiles, ratón y teclado, complementado con retroalimentación auditiva y háptica.
 
@@ -109,6 +112,8 @@ control-iot/
 ├── index.html                    # CONTROL: cabina con joysticks, DEMO y DETENER
 ├── monitoreo.html                # MONITOREO: último movimiento + últimos 10 movimientos persistidos
 ├── eventos.html                  # Diagnóstico: eventos WebSocket crudos (solo lectura)
+├── catalogo.html                 # CATÁLOGO público y prueba temporal del invitado anónimo
+├── administracion.html           # ADMINISTRACIÓN: inicio de sesión y vistas por rol
 ├── README.md
 ├── docs/
 │   └── monitoreo.md              # Auditoría de contratos, arquitectura, pruebas y checklist de MONITOREO
@@ -119,7 +124,8 @@ control-iot/
     │   ├── components.css        # Compartido: teclas, campos, hojas <dialog>, movimiento reducido
     │   ├── control.css           # Solo index.html
     │   ├── monitoreo.css         # Solo monitoreo.html
-    │   └── eventos.css           # Solo eventos.html
+    │   ├── eventos.css           # Solo eventos.html
+    │   └── administracion.css    # administracion.html y catalogo.html
     ├── js/
     │   ├── core/                 # Reutilizable por cualquier página
     │   │   ├── config.js         # URLs, rutas, ID de vehículo, timeouts, zona horaria, créditos y PAGINAS
@@ -133,8 +139,15 @@ control-iot/
     │   │   ├── state.js          # Estado global observable (CONTROL)
     │   │   ├── feedback.js       # Sonido y vibración (CONTROL)
     │   │   ├── tema.js           # Tema de color y efectos reducidos
+    │   │   ├── sesion.js         # Sesión (token en sessionStorage), renovación y prueba de invitado
+    │   │   ├── selector-unidad.js # Selector de unidad (?vehiculo=N) según la sesión
     │   │   └── layout.js         # Navegación entre páginas y pie de créditos
-    │   ├── control/              # Módulos de index.html (main, commands, joystick, demo, demo-progreso, luz, ui)
+    │   ├── control/              # Módulos de index.html (main, commands, joystick, demo, demo-progreso, luz, ui,
+    │   │                         #   invitado: modo invitado; mis-comandos: comandos propios del comprador)
+    │   ├── admin/                # ADMINISTRACIÓN: main, ui, resumen, inventario, modelos, clientes, asignaciones,
+    │   │                         #   reportes, bitacora, comprador, editor-demos, comandos-propios
+    │   ├── catalogo/
+    │   │   └── main.js           # Punto de entrada de catalogo.html
     │   ├── monitoreo/
     │   │   ├── main.js           # Punto de entrada: REST inicial, WSS en vivo, resincronización
     │   │   ├── ultimo-movimiento.js # Tarjeta del último movimiento y estado de DEMO en vivo
@@ -167,6 +180,7 @@ control-iot/
 ### 3. Mecánica de Control
 - **`control/joystick.js`**: Convierte el movimiento en coordenadas del cursor o toques de pantalla en desplazamientos cardinales (`arriba`, `abajo`, `izquierda`, `derecha`) empleando una zona muerta central y un umbral de histéresis para evitar fluctuaciones en diagonales.
 - **`control/commands.js`**: Regula el flujo de emisión de comandos. Distingue entre comandos sostenidos (movimiento) y de alternancia (*toggle*), administra una cola de toggles para evitar saturar el canal y ejecuta detenciones de seguridad automáticas en caso de fallo de red.
+- **`control/mis-comandos.js`**: Sección «Mis comandos» con los comandos propios del comprador: se envían por su `id_comando`, los sostenidos se mantienen presionados y se detienen al soltar.
 - **`control/demo.js`**: Gestiona el ciclo de vida de rutinas demostrativas, asegurando que los controles manuales permanezcan deshabilitados hasta que el backend reporte la conclusión de la rutina o se cumpla el tiempo límite de seguridad.
 
 ### 4. Presentación e Interacción
@@ -201,10 +215,15 @@ Los comandos del vehículo se organizan en `assets/js/data/grupos.js` y `assets/
 ### 3. Sistemas (Comandos de Alternancia / Toggle)
 | Código | Icono | Descripción / Subsistema |
 | :---: | :---: | :--- |
-| `5` | ◉ | Actuador / Sistema 1 |
-| `6` | ✦ | Actuador / Sistema 2 |
-| `7` | ⌁ | Actuador / Sistema 3 |
-| `8` | ● | Actuador / Sistema 4 |
+| `5` | ◉ | Control ON/OFF |
+| `6` | ✦ | Sonido ON/OFF |
+| `7` | ⌁ | Velocidad x2 |
+| `8` | ● | Luz ON/OFF (interruptor con estado estimado) |
+
+### 4. Mis comandos (comprador)
+Comandos propios creados en ADMINISTRACIÓN → Mis vehículos → Comandos. Cada uno es un nombre del comprador para un movimiento 1-12 que la unidad ya tiene; aparecen en CONTROL con ★ y borde punteado. Los joysticks y botones usan siempre los comandos de fábrica.
+
+Qué comandos ve un invitado lo decide el administrador (Inventario → Comandos → «Invitados»); en la unidad de exhibición están habilitados todos los movimientos 1-12.
 
 > **Nota:** La parada general de emergencia (`DETENER`) cuenta con su endpoint exclusivo `/api/vehiculos/{id}/detener` y tiene prioridad operativa sobre cualquier otro comando en tránsito.
 
@@ -224,6 +243,8 @@ Los comandos del vehículo se organizan en `assets/js/data/grupos.js` y `assets/
 | `GET` | `/api/vehiculos/{id}/demos` | Consulta de rutinas demo disponibles |
 | `POST` | `/api/vehiculos/{id}/demos/{id}/ejecutar` | Inicio de ejecución de una rutina demo |
 | `POST` | `/api/vehiculos/{id}/demos/cancelar` | Solicitud de cancelación de rutina demo activa |
+
+Todas estas rutas exigen sesión en producción; el token viaja en `Authorization: Bearer …`. Las de ADMINISTRACIÓN (`/api/auth`, `/api/admin`, `/api/mis-vehiculos`, `/api/catalogo`, `/api/invitado`, `/api/ws/ticket`) están en `AUTH_ROUTES`, `ADMIN_ROUTES`, `INVITADO_ROUTES` y `WS_TICKET_ROUTE` de `config.js`; el contrato completo está en el README de la API.
 
 ### WebSocket WSS (Telemetría y Eventos)
 
@@ -246,13 +267,13 @@ Los comandos del vehículo se organizan en `assets/js/data/grupos.js` y `assets/
 Todos los parámetros de entorno y comportamiento se centralizan en [`assets/js/core/config.js`](assets/js/core/config.js):
 
 ```javascript
-export const API_BASE = 'https://vehiculo-iot-itp.duckdns.org';
+export const API_BASE = apiBase();  // producción; en localhost acepta ?api=http://127.0.0.1:PUERTO
 export const APP_NAME = 'Carrito Jesus';
 export const AUTOR_NOMBRE = 'Navarro Carbajal Jesus Alfonso';
 export const MATRICULA = '22200964';
 export const ANIO = 2026;
 export const PAGINAS = [ /* { id, href, etiqueta, icono } — navegación entre páginas */ ];
-export const VEHICLE_ID = 1;
+export const VEHICLE_ID = vehiculoElegido();  // ?vehiculo=N en la URL; por omisión 1 (exhibición)
 export const WS_URL = `${API_BASE.replace(/^https:/, 'wss:')}/ws/vehiculos/${VEHICLE_ID}`;
 
 export const REQUEST_TIMEOUT_MS = 8000;       // Tiempo de espera para solicitudes HTTP estándar
@@ -263,7 +284,7 @@ export const JOYSTICK_AXIS_HYSTERESIS = 0.12; // Tolerancia angular para evitar 
 export const TOGGLE_INTERRUPTS_MOVEMENT = true;// Define si un toggle detiene el movimiento sostenido activo
 ```
 
-El pie de ambas páginas se genera como `Desarrollado por {AUTOR_NOMBRE} · {MATRICULA} · {ANIO}`.
+El pie de todas las páginas se genera como `Desarrollado por {AUTOR_NOMBRE} · {MATRICULA} · {ANIO}`.
 
 ---
 
@@ -285,12 +306,12 @@ python -m http.server 8000
 ```
 Accede a `http://localhost:8000/` (control), `http://localhost:8000/monitoreo.html` y `http://localhost:8000/eventos.html`.
 
-> **CORS:** el backend solo permite el origen `https://80chucho08.github.io`. En local el WSS conecta, pero el navegador bloquea las llamadas REST (indicador API «No disponible», historial «Desconectado»). Las pruebas REST reales de CONTROL y MONITOREO se hacen en GitHub Pages. Ver [`docs/monitoreo.md`](docs/monitoreo.md).
+> **CORS:** la API de producción permite `https://80chucho08.github.io` y, para pruebas, `http://localhost:3000` y `http://127.0.0.1:3000`. Sirviendo el front en el puerto **3000** las llamadas REST funcionan; en otro puerto el navegador las bloquea. Para probar contra una API local usa `?api=` (ver [ADMINISTRACIÓN](#-administración-administracionhtml-práctica-43)).
 
 > **Windows:** si la consola muestra *"Expected a JavaScript module script but the server responded with a MIME type of text/plain"*, el registro de Windows tiene `.js` asociado a `text/plain` y `http.server` lo hereda. Usa la opción de Node.js o corrige la clave `HKEY_CLASSES_ROOT\.js` → `Content Type = text/javascript`, y recarga sin caché.
 
 ### Probar desde una subruta (como GitHub Pages)
-GitHub Pages publica el sitio en `https://<usuario>.github.io/control-iot/`. Para reproducirlo, sirve la carpeta **padre** y abre la subruta:
+GitHub Pages publica el sitio en `https://80chucho08.github.io/vehiculo-iot-front/` (el nombre del repositorio, no el de la carpeta local). Para reproducir una subruta, sirve la carpeta **padre** y abre la subcarpeta:
 ```sh
 # Desde la carpeta que contiene control-iot/
 npx serve . -l 8000
@@ -304,21 +325,21 @@ Abre `http://localhost:8000/control-iot/`. Todas las rutas del proyecto son rela
 
 ## ➕ Cómo agregar una página nueva
 
-Ejemplo: `administracion.html`.
+Ejemplo: `ayuda.html` (así se crearon `administracion.html` y `catalogo.html`).
 
-1. **HTML:** copia `eventos.html` como plantilla a la raíz (`control-iot/administracion.html`). Conserva los `<link>` de favicon, `tokens.css`, `base.css` y `components.css`, el `<nav class="app-nav" data-nav>` de la barra superior y el `<footer class="app-credits" id="app-credits">` al final del `<main>`.
-2. **CSS:** crea `assets/css/administracion.css` con la maquetación propia de la página y enlázalo.
-3. **JS:** crea `assets/js/administracion/main.js` y cárgalo con `<script type="module" src="assets/js/administracion/main.js">` (más `assets/js/core/tema.js` para el tema). Dentro:
+1. **HTML:** copia `eventos.html` como plantilla a la raíz (`control-iot/ayuda.html`). Conserva los `<link>` de favicon, `tokens.css`, `base.css` y `components.css`, el `<nav class="app-nav" data-nav>` de la barra superior y el `<footer class="app-credits" id="app-credits">` al final del `<main>`.
+2. **CSS:** crea `assets/css/ayuda.css` con la maquetación propia de la página y enlázalo.
+3. **JS:** crea `assets/js/ayuda/main.js` y cárgalo con `<script type="module" src="assets/js/ayuda/main.js">` (más `assets/js/core/tema.js` para el tema). Dentro:
    ```javascript
    import { montarNavegacion, montarCreditos } from '../core/layout.js';
-   montarNavegacion(document.querySelector('[data-nav]'), 'administracion');
+   montarNavegacion(document.querySelector('[data-nav]'), 'ayuda');
    montarCreditos(document.getElementById('app-credits'));
    ```
 4. **Navegación:** agrega la entrada en `PAGINAS` de `assets/js/core/config.js`:
    ```javascript
-   Object.freeze({ id: 'administracion', href: 'administracion.html', etiqueta: 'Administración', icono: 'administracion' })
+   Object.freeze({ id: 'ayuda', href: 'ayuda.html', etiqueta: 'Ayuda', icono: 'ayuda' })
    ```
-   El enlace aparece automáticamente en las demás páginas (`core/layout.js` ya incluye el icono de `administracion`).
+   El enlace aparece automáticamente en las demás páginas; agrega el trazo del icono `ayuda` en `core/layout.js`.
 5. Usa siempre **rutas relativas** (`assets/...`, `../core/...`), nunca rutas que empiecen con `/`.
 
 ---
@@ -327,7 +348,7 @@ Ejemplo: `administracion.html`.
 
 - GitHub Pages **distingue mayúsculas y minúsculas**; Windows no. Un `import './Config.js'` funciona en local pero da **404** publicado si el archivo es `config.js`. Todos los nombres de archivo y carpeta del proyecto están en minúsculas: mantén esa convención.
 - Al renombrar solo mayúsculas en Windows usa `git mv viejo.js temporal.js && git mv temporal.js nuevo.js`, porque Git no siempre detecta el cambio.
-- No uses rutas absolutas (`/assets/...`): en Pages apuntarían a `https://<usuario>.github.io/assets/...` en lugar de `.../control-iot/assets/...`.
+- No uses rutas absolutas (`/assets/...`): en Pages apuntarían a `https://<usuario>.github.io/assets/...` en lugar de `.../vehiculo-iot-front/assets/...`.
 
 ---
 
@@ -360,8 +381,12 @@ Tercera aplicación, sobre la misma API, para la empresa que vende los vehículo
 
 - **Inicio de sesión** con token de acceso de 30 min guardado en `sessionStorage` (`core/sesion.js`). Se renueva solo hasta un tope de 8 h y se borra al cerrar la pestaña o la sesión. El logout revoca el token en el servidor.
 - **Vistas por rol.** La interfaz solo oculta opciones; quien autoriza es la API.
-  - **Administrador:** Resumen (métricas reales), Inventario (alta comercial de unidades que copia comandos y demos de fábrica, edición y comandos permitidos), Modelos, Clientes, Asignaciones y Bitácora de auditoría.
-  - **Comprador:** Mis vehículos, con su consentimiento de soporte temporal.
+  - **Administrador:** Resumen (métricas reales, se vuelve a consultar al abrir la pestaña), Inventario, Modelos, Clientes (rol Comprador, Invitado o Administrador), Asignaciones, **Reportes** y Bitácora de auditoría.
+    - Inventario: alta comercial de unidades (copia comandos y demos de fábrica), **Editar** (datos del carrito y «Dispositivo (ESP8266)» propio o compartido con otra unidad), **Comandos** (crear de fábrica, editar, activar, permitir a invitados y tope; ve los propios de cada comprador), **Demos** (crea de fábrica y edita o elimina cualquiera, incluso las privadas) y **Token ESP**.
+    - Reportes: revisa los reportes de falla; con la autorización del comprador, **Probar unidad** abre CONTROL de la unidad vendida, y **Resolver** revoca ese acceso temporal.
+    - Una unidad vendida no se controla sin autorización de su comprador: la API responde 403.
+  - **Comprador (Usuario):** Mis vehículos con Controlar, Monitorear, **Comandos** (crear y eliminar los propios a partir de movimientos ya registrados), **Demos** (las de fábrica son de solo lectura), **Reportar falla** (con autorización de soporte temporal en el mismo paso), lista de reportes y autorizar o revocar soporte.
+  - **Invitado (cuenta):** vista propia con enlaces a CONTROL y MONITOREO de la unidad de exhibición. Solo ve los comandos que el admin habilitó para invitados y las demos de fábrica; sin cuenta regresiva. En el navegador su rol se guarda como `visitante` para no confundirlo con la reserva anónima del catálogo (`invitado`).
 - **Seguridad del navegador:**
   - Content-Security-Policy sin scripts en línea.
   - Todo el contenido del servidor se inserta con `textContent`, nunca con `innerHTML`.
@@ -379,13 +404,13 @@ Tercera aplicación, sobre la misma API, para la empresa que vende los vehículo
 
 - **Una unidad por URL:** CONTROL, MONITOREO y EVENTOS operan la unidad de `?vehiculo=N` (por omisión, 1, la de exhibición). El **selector de unidad** (en Ajustes de CONTROL y en la barra de MONITOREO y EVENTOS) ofrece las unidades del comprador o el inventario del admin, y la navegación conserva la unidad elegida. Elegir no da permisos: si no es tuya, la API responde 404.
 - **Mis vehículos** (comprador): Controlar, Monitorear, Demos y soporte. El **editor de demos** permite agregar, quitar, editar y reordenar pasos (↑ ↓ ✕, accesible por teclado) y valida en el navegador los mismos topes que la API (modelo, comando, 120 s en total). Las demos privadas aparecen en CONTROL solo para su dueño.
-- **Catálogo** (`catalogo.html`, público): modelos publicados con su unidad de exhibición y disponibilidad. «Probar N minutos» pide confirmar supervisión y zona despejada, reserva la unidad en exclusiva y abre CONTROL en **modo invitado**: cuenta regresiva, «Terminar prueba», solo movimientos, luz y demos de fábrica. Al terminar, por tiempo o al cerrar la página, la API detiene la unidad y el navegador vuelve al catálogo.
+- **Catálogo** (`catalogo.html`, público): modelos publicados con su unidad de exhibición y disponibilidad. «Probar N minutos» pide confirmar supervisión y zona despejada, reserva la unidad en exclusiva y abre CONTROL en **modo invitado**: cuenta regresiva, «Terminar prueba», solo los comandos habilitados para invitados y las demos de fábrica. Con la cuenta de invitado iniciada, el botón es «Controlar con mi cuenta» (sin reserva). Al terminar, por tiempo o al cerrar la página, la API detiene la unidad y el navegador vuelve al catálogo.
 - **WSS autenticado:** `core/ws.js` pide un ticket de un solo uso (`POST /api/ws/ticket`) antes de cada conexión o reconexión; el token de sesión nunca va en la URL. Si la API niega el acceso, el indicador muestra «Sin acceso»; si se revocan los permisos (4403), el canal se cierra y al reconectar la API vuelve a decidir.
 - **Token del ESP8266:** ADMINISTRACIÓN → Inventario → **Token ESP** (se muestra una sola vez).
 
-Despliegue y guion de la prueba por equipos: `vehiculo_iot_api/docs/despliegue_4.3.md`.
+Despliegue y guion de la prueba por equipos: `vehiculo_iot_api/docs/despliegue_4.3.md`. Cuentas, unidades y guion de la **prueba por roles** (Invitado, Usuario y Administrador con un solo carrito físico): `vehiculo_iot_api/docs/prueba_roles.md`.
 
-**Probar en local contra una API local** (la CORS de la API permite `http://127.0.0.1:3000`):
+**Probar en local contra una API local** (la CORS de la API permite `http://localhost:3000` y `http://127.0.0.1:3000`):
 
 ```powershell
 python -m http.server 3000 --bind 127.0.0.1
